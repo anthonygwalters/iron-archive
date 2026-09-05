@@ -248,3 +248,63 @@ rename safety; canonical place identity and referential integrity; the concrete
 validation split between JSON Schema and custom checks; the photo/document
 upload-and-storage path (the least-specified area, deserving its own spec); and
 auto-merge policy for low-risk sighting additions.
+
+---
+
+## 13. Deferred to v2 — Experience reports
+
+An **experience report** is a first-person, subjective account of *using* a machine —
+modeled on an Erowid trip report, not a product review. It is the subjective
+counterpart to the objective (measured) layer, and it is **deferred to v2**. v1 does
+not build it; v1 only makes sure the foundations it will need are in place (see
+"reserve the socket" below).
+
+**What it captures** that no spec can: the *feel* of the strength curve ("smooth press,
+dominant at the end range" — the human-readable shadow of the measured leverage curve),
+fit/ergonomics ("seat won't go low enough for short lifters"), smoothness/mechanism
+feel, stability, and unit-specific wear ("the one at Iron Arena had shot bushings").
+
+**Erowid discipline** (why it's not a review):
+- Individual accounts are **preserved verbatim, never averaged, and carry no score or
+  ranking** — the same "never collapse" rule the rest of the model obeys.
+- Each narrative is wrapped in **context metadata** so a stranger can interpret it:
+  reporter experience level, **height** (fit reports are meaningless without it),
+  bodyweight, and the load/reps used.
+- Body is free text; optional **non-numeric tags** (strength-curve feel, fit,
+  smoothness, stability) allow filtering without recreating a rating system.
+
+**How it slots in:** attaches to a **generation** (feel is generation-specific), with
+the usual fallback to nameplate/unsorted, and **optionally links a sighting** — a
+report is often the natural sibling of a sighting ("saw it" + "used it"). The intended
+flow is a *"used it? add an experience report →"* affordance on a sighting that
+pre-fills machine, place, and date. This surfaces a per-model vs. per-unit spectrum
+("this machine's arc is great" vs. "the Iron Arena unit is beat up"), which the linked
+sighting lets a reader separate.
+
+**A bonus payoff:** this safely recovers some of the condition/liveness value
+deliberately dropped from sightings (§7, §11) — but only through the Erowid framing: a
+*dated, subjective, first-person* account ("felt gritty when I used it in Aug 2026"),
+never a present-tense factual claim about a business's equipment. Reports must stay
+descriptive-of-experience, not accusatory-of-a-business — same discipline as sightings,
+enforced by framing and the flag/takedown path.
+
+**Wall stays up:** the subjective layer never feeds an objective field. A hundred people
+*feeling* it's "light" is not a starting-weight measurement.
+
+**Reserve the socket in v1 (so v2 is additive, not a retrofit):**
+- Stable, immutable IDs on machines, generations, and **sightings** — a report links to
+  these by ID, and "create a report from a sighting" needs a durable sighting ID
+  (which sightings require anyway).
+- A **generic** "attach at any level + optional cross-links" mechanism shared by
+  measurements/sightings/documents, so a fourth content type is a clean drop-in.
+- The shared object-storage path (reports may carry photos).
+
+**Open fork for v2:** does a report *require* a sighting, or can it stand alone
+("I owned one for years")? Current lean: **sighting optional**, so an old-timer's
+decades of memory aren't lost for want of a place-and-date.
+
+**Moderation note:** experience reports are the first content type where *quality*
+(not just *validity*) needs human judgment. A candidate is an LLM-assisted intake
+triage pass (see the tracking issue) — a cheap model flagging, for a human reviewer,
+things like condition claims about a specific gym's unit, spam/off-topic, or PII —
+as an *assist* to the human-merge queue, never an autonomous gatekeeper.
