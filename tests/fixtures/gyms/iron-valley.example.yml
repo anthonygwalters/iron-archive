@@ -1,0 +1,11 @@
+# EXAMPLE FIXTURE — illustrative only, not a real place record.
+schema_version: 1
+id: osm_node_12345678
+name: "Iron Valley Gym"
+address: "123 Main St, Springfield, IL"
+lat: 39.7817
+lon: -89.6501
+country: US
+source: osm
+contributor: gh:janedoe
+date_added: "2026-08-30"

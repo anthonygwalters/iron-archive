@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ironarchive.dev/schema/gym.schema.json",
+  "title": "Iron Archive gym (place) record",
+  "description": "One canonical place per file, keyed by a namespaced, filesystem-safe place_id. Sightings reference this by place_id. Resolved once at intake so the map stays static. See CLAUDE.md and docs/model.md.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "id", "name"],
+  "properties": {
+    "schema_version": { "type": "integer", "const": 1 },
+    "id": {
+      "description": "Namespaced place id; also the filename. Underscore-separated so it is filesystem-safe.",
+      "$ref": "#/$defs/placeId"
+    },
+    "name": { "type": "string", "minLength": 1 },
+    "address": { "type": "string" },
+    "lat": { "type": "number", "minimum": -90, "maximum": 90 },
+    "lon": { "type": "number", "minimum": -180, "maximum": 180 },
+    "country": { "type": "string" },
+    "source": {
+      "description": "Which resolver produced this place. 'local' = a provisional id minted when no resolver matched; 'manual' = hand-entered.",
+      "enum": ["osm", "google", "local", "manual"]
+    },
+    "merged_into": {
+      "description": "If this place was found to duplicate another, the canonical id it was merged into. Kept (not deleted) so references survive.",
+      "$ref": "#/$defs/placeId"
+    },
+    "contributor": { "type": "string", "minLength": 1 },
+    "date_added": { "type": "string", "format": "date" },
+    "note": { "type": "string" }
+  },
+  "$defs": {
+    "placeId": {
+      "type": "string",
+      "pattern": "^(osm_(node|way|relation)_[0-9]+|google_[A-Za-z0-9_-]+|local_[0-9A-HJKMNP-TV-Z]{26})$"
+    }
+  }
+}

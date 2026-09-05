@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
-"""Validate Iron Archive YAML records against the JSON Schemas.
+"""Validate Iron Archive YAML records against their JSON Schemas.
 
-Validates every data/machines/*.yml (real records) and tests/fixtures/*.yml
-(examples) against data/schema/machine.schema.json.
+Routes each record type to the right schema:
+  data/machines/*.yml          -> machine.schema.json
+  data/gyms/*.yml              -> gym.schema.json
+  data/sightings/**/*.yml      -> sighting.schema.json
+and the parallel tests/fixtures/{machines,gyms,sightings}/*.yml examples.
 
 Deps: pip install jsonschema pyyaml rfc3339-validator
 Usage: python scripts/validate.py   (exit 0 = all valid, 1 = errors)
@@ -20,8 +23,23 @@ import yaml
 from jsonschema import Draft202012Validator, FormatChecker
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
-SCHEMA = ROOT / "data" / "schema" / "machine.schema.json"
-TARGETS = [ROOT / "data" / "machines", ROOT / "tests" / "fixtures"]
+SCHEMA_DIR = ROOT / "data" / "schema"
+
+SCHEMAS = {
+    "machine": SCHEMA_DIR / "machine.schema.json",
+    "gym": SCHEMA_DIR / "gym.schema.json",
+    "sighting": SCHEMA_DIR / "sighting.schema.json",
+}
+
+# (glob relative to ROOT, schema key). ** matches nested dirs.
+TARGETS = [
+    ("data/machines/*.yml", "machine"),
+    ("data/gyms/*.yml", "gym"),
+    ("data/sightings/**/*.yml", "sighting"),
+    ("tests/fixtures/machines/*.yml", "machine"),
+    ("tests/fixtures/gyms/*.yml", "gym"),
+    ("tests/fixtures/sightings/*.yml", "sighting"),
+]
 
 
 def coerce_dates(obj):
@@ -35,30 +53,33 @@ def coerce_dates(obj):
 
 
 def main() -> int:
-    schema = json.loads(SCHEMA.read_text())
-    Draft202012Validator.check_schema(schema)
-    validator = Draft202012Validator(schema, format_checker=FormatChecker())
-
-    files = sorted(p for d in TARGETS if d.exists() for p in d.glob("*.yml"))
-    if not files:
-        print("no records to validate yet")
-        return 0
+    validators = {}
+    for key, path in SCHEMAS.items():
+        schema = json.loads(path.read_text())
+        Draft202012Validator.check_schema(schema)
+        validators[key] = Draft202012Validator(schema, format_checker=FormatChecker())
 
     total_errors = 0
-    for f in files:
-        record = coerce_dates(yaml.safe_load(f.read_text()))
-        errs = sorted(validator.iter_errors(record), key=lambda e: list(e.path))
-        rel = f.relative_to(ROOT)
-        if errs:
-            total_errors += len(errs)
-            print(f"FAIL {rel} ({len(errs)} error(s))")
-            for e in errs:
-                loc = "/".join(str(p) for p in e.path) or "(root)"
-                print(f"  - {loc}: {e.message}")
-        else:
-            print(f"ok   {rel}")
+    total_files = 0
+    for glob, key in TARGETS:
+        for f in sorted(ROOT.glob(glob)):
+            total_files += 1
+            record = coerce_dates(yaml.safe_load(f.read_text()))
+            errs = sorted(validators[key].iter_errors(record), key=lambda e: list(e.path))
+            rel = f.relative_to(ROOT)
+            if errs:
+                total_errors += len(errs)
+                print(f"FAIL [{key}] {rel} ({len(errs)} error(s))")
+                for e in errs:
+                    loc = "/".join(str(p) for p in e.path) or "(root)"
+                    print(f"  - {loc}: {e.message}")
+            else:
+                print(f"ok   [{key}] {rel}")
 
-    print(f"\n{len(files)} file(s), {total_errors} error(s)")
+    if total_files == 0:
+        print("no records to validate yet")
+        return 0
+    print(f"\n{total_files} file(s), {total_errors} error(s)")
     return 1 if total_errors else 0
 
 

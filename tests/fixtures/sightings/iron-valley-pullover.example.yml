@@ -1,0 +1,15 @@
+# EXAMPLE FIXTURE — illustrative only. In production this lives at
+# data/sightings/mac_01J9Z3XK7QRS8TVWXYZ0ABCDEF/sig_...yml
+schema_version: 1
+id: sig_01J9Z3XK7QRS8TVWXYZ0ABCDEM
+machine_id: mac_01J9Z3XK7QRS8TVWXYZ0ABCDEF
+generation_id: gen_01J9Z3XK7QRS8TVWXYZ0ABCDEH
+place_id: osm_node_12345678
+place_name: "Iron Valley Gym"
+date_seen: "2026-08-30"
+reporter: gh:janedoe
+photo:
+  key: obj/ph_01J9Z3XK7QRS8TVWXYZ0ABCDEN
+  contributor: gh:janedoe
+  date: "2026-08-30"
+note: "Left side of the free-weight room; sticker on the frame reads 1998."
