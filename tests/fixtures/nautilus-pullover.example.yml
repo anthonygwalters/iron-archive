@@ -1,0 +1,107 @@
+# EXAMPLE FIXTURE — illustrative only. Measurement values are FABRICATED to
+# exercise the schema and must never be treated as real data. Real records live
+# in data/machines/ and arrive via the intake flow.
+schema_version: 1
+id: mac_01J9Z3XK7QRS8TVWXYZ0ABCDEF
+slug: nautilus-pullover
+aliases: [nautilus-pull-over]
+status: active
+
+brand: Nautilus
+model: Pullover
+region: [back, chest]
+movement: "pullover / lat isolation"
+loading: [plate-loaded]
+form_factor: lever/cam
+
+lead_photo:
+  key: obj/ph_01J9Z3XK7QRS8TVWXYZ0ABCDEK
+  sha256: abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789
+  caption: "Original blue Nautilus Pullover"
+  contributor: gh:jane
+  date: "2026-09-01"
+
+links:
+  family: [mac_01J9Z3XK7QRS8TVWXYZ0ABCDEG]
+
+generations:
+  - id: gen_01J9Z3XK7QRS8TVWXYZ0ABCDEG
+    label: "Original (DeLand)"
+    era: "1970–1983"
+    brand_owner: "Arthur Jones / Nautilus Sports-Medical"
+    assignment:
+      contributor: gh:oldtimer
+      confidence: estimated
+      source: doc_01J9Z3XK7QRS8TVWXYZ0ABCDEJ
+      date: "2026-08-15"
+    measurements:
+      leverage:
+        - rom: "pin 5, full contraction"
+          trials: [12.4, 12.6, 12.5]
+          unit: ratio
+          source: crane-scale
+          contributor: gh:jane
+          date: "2026-09-01"
+          confidence: measured
+        - rom: "pin 5, full contraction"
+          value: 15.0
+          unit: ratio
+          source: "forum post, unverified"
+          contributor: gh:bob
+          date: "2026-07-10"
+          confidence: disputed
+        - rom: "pin 5, mid-range"
+          trials: [8.1, 8.3, 8.0]
+          unit: ratio
+          source: crane-scale
+          contributor: gh:jane
+          date: "2026-09-01"
+          confidence: measured
+    documents:
+      - id: doc_01J9Z3XK7QRS8TVWXYZ0ABCDEJ
+        doc_type: manual
+        tier: link
+        url: https://archive.org/details/nautilus-pullover-owners-manual-1978
+        title: "1978 Owner's Manual"
+        publisher: Nautilus
+        year: 1978
+        contributor: gh:bob
+        date_added: "2026-08-01"
+
+  - id: gen_01J9Z3XK7QRS8TVWXYZ0ABCDEH
+    label: "Nautilus One / Nitro (remake)"
+    era: "2010s"
+    loading: [selectorized]
+    measurements:
+      starting_weight:
+        - rom: "pin at lowest plate, carriage included"
+          trials: [18.0, 18.2, 18.1]
+          unit: lb
+          source: crane-scale
+          contributor: gh:jane
+          date: "2026-09-02"
+          confidence: measured
+    specs:
+      stack_max:
+        - value: 200
+          unit: lb
+          contributor: gh:jane
+          date: "2026-09-02"
+          confidence: manufacturer
+      stack_increment:
+        - value: 10
+          unit: lb
+          contributor: gh:jane
+          date: "2026-09-02"
+          confidence: manufacturer
+
+unsorted:
+  measurements:
+    leverage:
+      - rom: "unknown pin, stretch position"
+        value: 6.5
+        unit: ratio
+        source: "old-timer recollection"
+        contributor: gh:bob
+        date: "2026-06-01"
+        confidence: estimated

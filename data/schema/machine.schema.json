@@ -1,0 +1,259 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ironarchive.dev/schema/machine.schema.json",
+  "title": "Iron Archive machine (nameplate) record",
+  "description": "One cohesive record per nameplate (brand + model). Generations, measurements, and documents live inline; sightings are separate files. See docs/model.md and CLAUDE.md.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "id", "slug", "status", "brand", "lead_photo"],
+  "properties": {
+    "schema_version": { "type": "integer", "const": 1 },
+
+    "id": {
+      "description": "Immutable opaque identity. Minted once at intake; never changed. Every reference points here.",
+      "type": "string",
+      "pattern": "^mac_[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "slug": {
+      "description": "Mutable filename + URL. Renames are the common case; old slugs move to aliases.",
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "aliases": {
+      "description": "Retired slugs, kept so old URLs 301-redirect and never orphan.",
+      "type": "array",
+      "items": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
+      "uniqueItems": true
+    },
+    "status": { "enum": ["stub", "active"] },
+
+    "brand": { "type": "string", "minLength": 1 },
+    "model": { "type": "string", "minLength": 1 },
+
+    "region": {
+      "description": "What it works. Coarse, closed, multi-value browse filter.",
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "enum": ["chest", "back", "shoulders", "arms", "legs", "glutes", "hamstrings", "calves", "hips", "lower-back", "neck", "traps", "core", "full-body", "other"]
+      }
+    },
+    "movement": {
+      "description": "Free text for precision and the esoteric (e.g. 'iso-lateral decline press').",
+      "type": "string"
+    },
+    "loading": {
+      "description": "How it loads. Decides which headline fact the page leads with.",
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "enum": ["selectorized", "plate-loaded", "pneumatic", "hydraulic", "assisted", "other"] }
+    },
+    "form_factor": { "enum": ["lever/cam", "cable", "smith", "pendulum", "other"] },
+
+    "lead_photo": { "$ref": "#/$defs/asset" },
+
+    "links": {
+      "description": "Relationships to OTHER nameplates, by immutable id.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "family": { "$ref": "#/$defs/machineIdList" },
+        "remake_of": { "$ref": "#/$defs/machineIdList" },
+        "rebrand_of": { "$ref": "#/$defs/machineIdList" },
+        "same_as": { "$ref": "#/$defs/machineIdList" }
+      }
+    },
+
+    "generations": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/generation" }
+    },
+
+    "unsorted": {
+      "description": "Observations, documents, and photos not yet pinned to a generation. Rendered openly as the recruiting hole.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "measurements": { "$ref": "#/$defs/measurements" },
+        "documents": { "type": "array", "items": { "$ref": "#/$defs/document" } },
+        "photos": { "type": "array", "items": { "$ref": "#/$defs/asset" } }
+      }
+    }
+  },
+
+  "$defs": {
+    "machineIdList": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "type": "string", "pattern": "^mac_[0-9A-HJKMNP-TV-Z]{26}$" }
+    },
+
+    "asset": {
+      "description": "Object-storage reference (photo). Records hold keys, not bare CDN URLs.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["key"],
+      "properties": {
+        "key": { "type": "string", "minLength": 1 },
+        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "caption": { "type": "string" },
+        "credit": { "type": "string" },
+        "contributor": { "type": "string", "minLength": 1 },
+        "date": { "type": "string", "format": "date" }
+      }
+    },
+
+    "observation": {
+      "description": "Base provenance shared by every measured value. trials XOR value; ROM added by romObservation.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contributor", "date", "confidence"],
+      "properties": {
+        "rom": { "type": "string", "minLength": 1 },
+        "trials": {
+          "description": "Individual trials, stored raw and never pre-averaged.",
+          "type": "array",
+          "items": { "type": "number" },
+          "minItems": 1,
+          "maxItems": 10
+        },
+        "value": { "type": "number" },
+        "unit": { "enum": ["lb", "kg", "ratio", "deg", "in", "cm", "mm"] },
+        "source": {
+          "description": "Free text (e.g. 'crane-scale') or a document id (doc_...).",
+          "type": "string"
+        },
+        "contributor": { "type": "string", "minLength": 1 },
+        "date": { "type": "string", "format": "date" },
+        "confidence": { "enum": ["measured", "manufacturer", "estimated", "disputed"] },
+        "note": { "type": "string" }
+      },
+      "oneOf": [
+        { "required": ["trials"] },
+        { "required": ["value"] }
+      ]
+    },
+
+    "romObservation": {
+      "description": "An observation that MUST state its ROM position / measurement point. No leverage without a point is a fact.",
+      "allOf": [
+        { "$ref": "#/$defs/observation" },
+        { "required": ["rom"] }
+      ]
+    },
+
+    "measurements": {
+      "description": "Mechanism-dependent headline facts. Each is an array of observations, never collapsed. For leverage the array also holds the curve (one entry per ROM point; disagreements at a point sit side by side).",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "starting_weight": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/romObservation" } },
+        "leverage": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/romObservation" } },
+        "counterbalance": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/romObservation" } },
+        "pulley_ratio": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/romObservation" } },
+        "assist_range": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/romObservation" } }
+      }
+    },
+
+    "specs": {
+      "description": "Simpler design facts, not ROM-dependent. Contested values still kept as arrays.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "stack_max": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/observation" } },
+        "stack_increment": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/observation" } },
+        "bar_path_angle": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/observation" } },
+        "dimensions": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/dimensions" } }
+      }
+    },
+
+    "dimensions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contributor", "date", "confidence"],
+      "properties": {
+        "length": { "type": "number" },
+        "width": { "type": "number" },
+        "height": { "type": "number" },
+        "unit": { "enum": ["in", "cm", "mm"] },
+        "source": { "type": "string" },
+        "contributor": { "type": "string", "minLength": 1 },
+        "date": { "type": "string", "format": "date" },
+        "confidence": { "enum": ["measured", "manufacturer", "estimated", "disputed"] },
+        "note": { "type": "string" }
+      }
+    },
+
+    "assignment": {
+      "description": "Generation identity is a soft, sourced observation, not a hard fact.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contributor"],
+      "properties": {
+        "contributor": { "type": "string", "minLength": 1 },
+        "confidence": { "enum": ["measured", "manufacturer", "estimated", "disputed"] },
+        "source": { "type": "string" },
+        "date": { "type": "string", "format": "date" },
+        "note": { "type": "string" }
+      }
+    },
+
+    "generation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^gen_[0-9A-HJKMNP-TV-Z]{26}$" },
+        "label": { "type": "string" },
+        "era": { "type": "string" },
+        "brand_owner": { "type": "string" },
+        "assignment": { "$ref": "#/$defs/assignment" },
+
+        "region": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "enum": ["chest", "back", "shoulders", "arms", "legs", "glutes", "hamstrings", "calves", "hips", "lower-back", "neck", "traps", "core", "full-body", "other"] }
+        },
+        "loading": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "enum": ["selectorized", "plate-loaded", "pneumatic", "hydraulic", "assisted", "other"] }
+        },
+        "form_factor": { "enum": ["lever/cam", "cable", "smith", "pendulum", "other"] },
+
+        "photos": { "type": "array", "items": { "$ref": "#/$defs/asset" } },
+        "measurements": { "$ref": "#/$defs/measurements" },
+        "specs": { "$ref": "#/$defs/specs" },
+        "documents": { "type": "array", "items": { "$ref": "#/$defs/document" } }
+      }
+    },
+
+    "document": {
+      "description": "Evidence layer. link | self-host require a url; project-host requires an uploaded file.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "doc_type", "tier"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^doc_[0-9A-HJKMNP-TV-Z]{26}$" },
+        "doc_type": { "enum": ["manual", "catalog/brochure", "advertisement", "vendor-page", "patent", "spec-sheet", "article", "forum", "video", "other"] },
+        "tier": { "enum": ["link", "self-host", "project-host"] },
+        "url": { "type": "string", "format": "uri" },
+        "file": { "$ref": "#/$defs/asset" },
+        "title": { "type": "string" },
+        "publisher": { "type": "string" },
+        "year": { "type": "integer", "minimum": 1800, "maximum": 2100 },
+        "rights": { "type": "string" },
+        "contributor": { "type": "string", "minLength": 1 },
+        "date_added": { "type": "string", "format": "date" },
+        "note": { "type": "string" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "tier": { "const": "project-host" } } },
+          "then": { "required": ["file"] },
+          "else": { "required": ["url"] }
+        }
+      ]
+    }
+  }
+}
