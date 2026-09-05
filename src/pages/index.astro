@@ -1,0 +1,43 @@
+---
+import Base from "../layouts/Base.astro";
+import { machines, headlineField, FIELD_LABELS } from "../lib/data";
+---
+
+<Base description="A public reference for strength-training machine specifications, especially discontinued models where no manufacturer documentation survives.">
+  <h1>Iron Archive</h1>
+  <p class="lede">
+    The specs nobody publishes — <strong>starting weight</strong>,
+    <strong>leverage ratio</strong>, the real load on the muscle — for the
+    strength-training machines the manuals forgot. Field-measured, openly sourced,
+    and never averaged away.
+  </p>
+
+  {machines.length === 0 ? (
+    <p class="hole">No records yet — be the first to measure one.</p>
+  ) : (
+    <>
+      <h2>{machines.length} machine{machines.length === 1 ? "" : "s"}</h2>
+      <ul class="list">
+        {machines.map((m) => {
+          const hf = headlineField(m.loading);
+          return (
+            <li>
+              <a href={`/machines/${m.slug}/`}>{m.brand}{m.model ? ` ${m.model}` : ""}</a>
+              {m.status === "stub" && <span class="pill stub">stub</span>}
+              {(m.region ?? []).map((r) => <span class="pill">{r}</span>)}
+              {hf && <span class="lead-fact">leads with {FIELD_LABELS[hf] ?? hf}</span>}
+            </li>
+          );
+        })}
+      </ul>
+    </>
+  )}
+</Base>
+
+<style>
+  .lede { font-size: 1.1rem; color: var(--ink); max-width: 60ch; }
+  ul.list { list-style: none; padding: 0; }
+  ul.list li { padding: 0.6rem 0; border-bottom: 1px solid var(--line); }
+  ul.list a { font-weight: 700; font-size: 1.05rem; text-decoration: none; margin-right: 0.5rem; }
+  .lead-fact { color: var(--muted); font-size: 0.8rem; margin-left: 0.4rem; }
+</style>

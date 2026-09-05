@@ -1,0 +1,40 @@
+---
+import Base from "../../layouts/Base.astro";
+import { gyms, sightingsByGym, machineById, type Gym } from "../../lib/data";
+
+export function getStaticPaths() {
+  return gyms.map((y) => ({ params: { place_id: y.id }, props: { gym: y } }));
+}
+const { gym } = Astro.props as { gym: Gym };
+const sightings = (sightingsByGym.get(gym.id) ?? []).slice().sort((a, b) =>
+  (b.date_seen || "").localeCompare(a.date_seen || "")
+);
+---
+
+<Base title={gym.name} description={`Machines reported at ${gym.name}.`}>
+  <div data-pagefind-body>
+    <p class="crumb muted">Gym</p>
+    <h1>{gym.name}</h1>
+    {gym.address && <p class="muted">{gym.address}</p>}
+
+    <h2>Machines reported here</h2>
+    <p class="muted">Dated historical reports, not a live inventory — a machine may since have moved on.</p>
+    <ul class="list">
+      {sightings.map((s) => {
+        const m = machineById.get(s.machine_id);
+        return (
+          <li>
+            {m ? <a href={`/machines/${m.slug}/`}>{m.brand}{m.model ? ` ${m.model}` : ""}</a> : <span>{s.machine_id}</span>}
+            <span class="muted"> · reported {s.date_seen} by {s.reporter}</span>
+          </li>
+        );
+      })}
+    </ul>
+  </div>
+</Base>
+
+<style>
+  .crumb { font-size: 0.85rem; margin-bottom: 0; }
+  ul.list { list-style: none; padding: 0; }
+  ul.list li { padding: 0.5rem 0; border-bottom: 1px solid var(--line); }
+</style>

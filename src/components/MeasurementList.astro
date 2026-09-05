@@ -1,0 +1,48 @@
+---
+import { groupByRom, displayValue, mean, type Observation } from "../lib/data";
+
+interface Props {
+  label: string;
+  observations: Observation[];
+  featured?: boolean;
+}
+const { label, observations, featured } = Astro.props;
+const groups = groupByRom(observations);
+---
+
+<div class:list={["field", { featured }]}>
+  <div class="field-name">{label}</div>
+  {groups.map(({ rom, obs }) => (
+    <div class="rom">
+      <div class="rom-point">{rom}</div>
+      <div class:list={["obs-row", { contested: obs.length > 1 }]}>
+        {obs.map((o) => (
+          <span class="obs" title={`${o.contributor ?? "?"} · ${o.date ?? "?"} · ${o.source ?? "unsourced"}`}>
+            <span class="val">{displayValue(o)}</span>
+            {o.trials && o.trials.length > 1 && (
+              <span class="trials">({o.trials.join(", ")})</span>
+            )}
+            <span class:list={["conf", o.confidence]}>{o.confidence ?? "?"}</span>
+          </span>
+        ))}
+        {obs.length > 1 && <span class="flag">contested — needs a tiebreak</span>}
+      </div>
+    </div>
+  ))}
+</div>
+
+<style>
+  .field { margin: 0.5rem 0 0.9rem; }
+  .field.featured { background: var(--card); border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 8px; padding: 0.6rem 0.8rem; }
+  .field-name { font-weight: 700; font-size: 0.95rem; }
+  .rom { margin: 0.35rem 0 0.2rem; }
+  .rom-point { font-size: 0.8rem; color: var(--muted); font-family: var(--mono); }
+  .obs-row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.5rem 0.9rem; }
+  .obs-row.contested { padding-left: 0.5rem; border-left: 2px solid var(--warn); }
+  .obs .val { font-weight: 700; font-size: 1.05rem; }
+  .obs .trials { color: var(--muted); font-size: 0.8rem; font-family: var(--mono); margin-left: 0.25rem; }
+  .conf { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.03em; color: var(--muted); margin-left: 0.3rem; }
+  .conf.measured { color: #2e7d32; }
+  .conf.disputed { color: var(--warn); }
+  .flag { font-size: 0.75rem; color: var(--warn); }
+</style>

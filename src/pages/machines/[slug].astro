@@ -1,0 +1,122 @@
+---
+import Base from "../../layouts/Base.astro";
+import MeasurementList from "../../components/MeasurementList.astro";
+import {
+  machines, machineById, sightingsByMachine, gymById,
+  headlineField, FIELD_LABELS, assetUrl, type Machine, type Generation,
+} from "../../lib/data";
+
+export function getStaticPaths() {
+  return machines.map((m) => ({ params: { slug: m.slug }, props: { machine: m } }));
+}
+const { machine } = Astro.props as { machine: Machine };
+const title = `${machine.brand}${machine.model ? " " + machine.model : ""}`;
+const sightings = sightingsByMachine.get(machine.id) ?? [];
+const latest = sightings[0];
+
+// Effective loading for a generation falls back to the nameplate's.
+const genLoading = (g: Generation) => (g.loading?.length ? g.loading : machine.loading);
+
+function renderMeasurements(measurements: Record<string, any[]> | undefined, loading?: string[]) {
+  if (!measurements) return [];
+  const hf = headlineField(loading);
+  return Object.entries(measurements).sort(([a], [b]) => (a === hf ? -1 : b === hf ? 1 : 0));
+}
+---
+
+<Base title={title} description={`Specs and sightings for the ${title}.`}>
+  <div data-pagefind-body>
+    <p class="crumb"><a href="/">Machines</a> ›</p>
+    <h1>{title}</h1>
+    <p>
+      {machine.status === "stub" && <span class="pill stub">stub</span>}
+      {(machine.region ?? []).map((r) => <span class="pill">{r}</span>)}
+      {(machine.loading ?? []).map((l) => <span class="pill">{l}</span>)}
+      {machine.form_factor && <span class="pill">{machine.form_factor}</span>}
+    </p>
+    {machine.movement && <p class="muted">{machine.movement}</p>}
+
+    {assetUrl(machine.lead_photo) && (
+      <img class="lead" src={assetUrl(machine.lead_photo)} alt={machine.lead_photo?.caption ?? title} loading="lazy" />
+    )}
+
+    {latest && (
+      <p class="latest">
+        📍 Last spotted at <a href={`/gyms/${latest.place_id}/`}>{latest.place_name}</a>
+        on {latest.date_seen} — <span class="muted">may be gone.</span>
+      </p>
+    )}
+
+    {(machine.generations ?? []).map((g) => {
+      const loading = genLoading(g);
+      const hf = headlineField(loading);
+      return (
+        <section class="gen">
+          <h2>{g.label ?? "Generation"}{g.era ? ` · ${g.era}` : ""}</h2>
+          {g.brand_owner && <p class="muted">Built by {g.brand_owner}</p>}
+          {g.loading?.length && <p class="muted">Loads: {g.loading.join(", ")}{hf ? ` — leads with ${FIELD_LABELS[hf] ?? hf}` : ""}</p>}
+
+          {renderMeasurements(g.measurements, loading).map(([field, obs]) => (
+            <MeasurementList label={FIELD_LABELS[field] ?? field} observations={obs} featured={field === hf} />
+          ))}
+          {g.specs && Object.entries(g.specs).map(([field, obs]) => (
+            field !== "dimensions" && <MeasurementList label={FIELD_LABELS[field] ?? field} observations={obs as any[]} />
+          ))}
+
+          {g.documents?.length && (
+            <div class="docs">
+              <h3>Documentation</h3>
+              <ul>
+                {g.documents.map((d) => (
+                  <li>
+                    <span class="pill">{d.doc_type}</span>
+                    {d.url ? <a href={d.url} rel="nofollow noopener">{d.title ?? d.url}</a> : <span>{d.title ?? d.id}</span>}
+                    {d.year && <span class="muted"> · {d.year}</span>}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </section>
+      );
+    })}
+
+    {machine.unsorted?.measurements && Object.keys(machine.unsorted.measurements).length > 0 && (
+      <section class="unsorted">
+        <h2>Unsorted observations</h2>
+        <p class="hole">Not yet pinned to a generation — know which one? Help identify it.</p>
+        {Object.entries(machine.unsorted.measurements).map(([field, obs]) => (
+          <MeasurementList label={FIELD_LABELS[field] ?? field} observations={obs as any[]} />
+        ))}
+      </section>
+    )}
+
+    <section class="sightings">
+      <h2>Spotted in the wild</h2>
+      {sightings.length === 0 ? (
+        <p class="hole">No sightings yet — seen one? Add where.</p>
+      ) : (
+        <ul class="list">
+          {sightings.map((s) => (
+            <li>
+              <a href={`/gyms/${s.place_id}/`}>{s.place_name}</a>
+              <span class="muted"> · {s.date_seen} · {s.reporter}</span>
+              {s.note && <div class="note muted">{s.note}</div>}
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  </div>
+</Base>
+
+<style>
+  .crumb { color: var(--muted); font-size: 0.85rem; margin-bottom: 0; }
+  .lead { max-width: 100%; border-radius: 10px; border: 1px solid var(--line); margin: 0.75rem 0; }
+  .latest { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 0.5rem 0.8rem; }
+  section.gen { margin-top: 1.5rem; }
+  .docs ul, .list { list-style: none; padding: 0; }
+  .docs li { padding: 0.25rem 0; }
+  .list li { padding: 0.5rem 0; border-bottom: 1px solid var(--line); }
+  .note { font-size: 0.9rem; }
+</style>
