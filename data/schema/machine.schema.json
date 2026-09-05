@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://ironarchive.dev/schema/machine.schema.json",
+  "$id": "https://theironarchive.org/schema/machine.schema.json",
   "title": "Iron Archive machine (nameplate) record",
   "description": "One cohesive record per nameplate (brand + model). Generations, measurements, and documents live inline; sightings are separate files. See docs/model.md and CLAUDE.md.",
   "type": "object",

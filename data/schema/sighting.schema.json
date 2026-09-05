@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://ironarchive.dev/schema/sighting.schema.json",
+  "$id": "https://theironarchive.org/schema/sighting.schema.json",
   "title": "Iron Archive sighting record",
   "description": "One append-only file per sighting, under data/sightings/<machine_id>/<id>.yml. A dated historical observation that a machine was seen at a place; never a present-tense claim (no condition field). References machine and place by immutable id. See CLAUDE.md and docs/model.md.",
   "type": "object",

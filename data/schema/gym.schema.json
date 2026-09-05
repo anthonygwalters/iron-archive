@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://ironarchive.dev/schema/gym.schema.json",
+  "$id": "https://theironarchive.org/schema/gym.schema.json",
   "title": "Iron Archive gym (place) record",
   "description": "One canonical place per file, keyed by a namespaced, filesystem-safe place_id. Sightings reference this by place_id. Resolved once at intake so the map stays static. See CLAUDE.md and docs/model.md.",
   "type": "object",
