@@ -21,9 +21,6 @@ lead_photo:
   contributor: gh:jane
   date: "2026-09-01"
 
-links:
-  family: [mac_01J9Z3XK7QRS8TVWXYZ0ABCDEG]
-
 generations:
   - id: gen_01J9Z3XK7QRS8TVWXYZ0ABCDEG
     label: "Original (DeLand)"

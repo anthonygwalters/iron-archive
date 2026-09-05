@@ -1,0 +1,40 @@
+name: validate
+
+# The review gate. Runs on every PR that touches data or the tooling, and on
+# pushes to main. Schema validation first (per-file), then cross-file integrity.
+on:
+  pull_request:
+    paths:
+      - "data/**"
+      - "scripts/**"
+      - "tests/**"
+      - ".github/workflows/validate.yml"
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # full history so id-immutability can diff the base
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install validator deps
+        run: pip install -r scripts/requirements.txt
+
+      - name: Schema validation (per file)
+        run: python scripts/validate.py
+
+      - name: Cross-file integrity
+        run: |
+          if [ -n "${{ github.base_ref }}" ]; then
+            python scripts/checks.py --base-ref "origin/${{ github.base_ref }}"
+          else
+            python scripts/checks.py
+          fi
