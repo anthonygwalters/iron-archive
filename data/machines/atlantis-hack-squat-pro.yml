@@ -1,0 +1,18 @@
+# Submitted via the Iron Archive intake form.
+schema_version: 1
+id: mac_01M1VT8V2S8MZA720NKP8DWR5B
+slug: atlantis-hack-squat-pro
+status: stub
+brand: Atlantis
+model: Hack Squat Pro
+region:
+  - legs
+  - glutes
+movement: 30 degree sled
+loading:
+  - plate-loaded
+form_factor: other
+lead_photo:
+  key: obj/ph_01M1VT8T8GBGKCEDYXN69GS0SR.jpeg
+  contributor: web:anthonygwalters
+  date: 2026-09-06
