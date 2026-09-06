@@ -2,7 +2,7 @@
 import Base from "../../layouts/Base.astro";
 import MeasurementList from "../../components/MeasurementList.astro";
 import {
-  machines, machineById, sightingsByMachine,
+  machines, machineById, sightingsByMachine, gymById,
   headlineField, FIELD_LABELS, assetUrl, relatedMachines, machineTitle,
   type Machine, type Generation, type Doc,
 } from "../../lib/data";
@@ -20,6 +20,18 @@ const addDocUrl = `/contribute/document/?${q}`;
 const addLinkUrl = `/contribute/link/?${q}`;
 const related = relatedMachines(machine);
 const unsortedDocs: Doc[] = machine.unsorted?.documents ?? [];
+
+// One marker per geocoded gym this machine has been sighted at.
+const mapById = new Map<string, { place_id: string; name: string; lat: number; lon: number; date: string; count: number }>();
+for (const s of sightings) {
+  const g = gymById.get(s.place_id);
+  if (g && typeof g.lat === "number" && typeof g.lon === "number") {
+    const ex = mapById.get(g.id);
+    if (ex) { ex.count++; if ((s.date_seen || "") > ex.date) ex.date = s.date_seen; }
+    else mapById.set(g.id, { place_id: g.id, name: g.name, lat: g.lat, lon: g.lon, date: s.date_seen, count: 1 });
+  }
+}
+const mapPoints = [...mapById.values()];
 
 // Effective loading for a generation falls back to the nameplate's.
 const genLoading = (g: Generation) => (g.loading?.length ? g.loading : machine.loading);
@@ -139,6 +151,46 @@ function renderMeasurements(measurements: Record<string, any[]> | undefined, loa
     <section class="sightings">
       <h2>Spotted in the wild</h2>
       <p><a href={addSightingUrl}>📍 Seen one? Add a sighting →</a></p>
+
+      {mapPoints.length > 0 && (
+        <>
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+          <div id="sightings-map" class="smap"></div>
+          <script is:inline src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+          <script is:inline define:vars={{ points: mapPoints }}>
+            (function () {
+              function init() {
+                if (!window.L) return;
+                var map = L.map("sightings-map", { scrollWheelZoom: false });
+                L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+                  maxZoom: 19,
+                  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                }).addTo(map);
+                var coords = [];
+                points.forEach(function (p) {
+                  var m = L.marker([p.lat, p.lon]).addTo(map);
+                  var div = document.createElement("div");
+                  var a = document.createElement("a");
+                  a.href = "/gyms/" + encodeURIComponent(p.place_id) + "/";
+                  a.textContent = p.name;
+                  div.appendChild(a);
+                  div.appendChild(document.createElement("br"));
+                  var s = document.createElement("span");
+                  s.textContent = p.count > 1 ? p.count + " sightings" : "seen " + p.date;
+                  div.appendChild(s);
+                  m.bindPopup(div);
+                  coords.push([p.lat, p.lon]);
+                });
+                if (coords.length === 1) map.setView(coords[0], 13);
+                else map.fitBounds(coords, { padding: [30, 30] });
+              }
+              if (document.readyState !== "loading") init();
+              else document.addEventListener("DOMContentLoaded", init);
+            })();
+          </script>
+        </>
+      )}
+
       {sightings.length === 0 ? (
         <p class="hole">No sightings yet.</p>
       ) : (
@@ -166,4 +218,6 @@ function renderMeasurements(measurements: Record<string, any[]> | undefined, loa
   .docs li { padding: 0.25rem 0; }
   .list li { padding: 0.5rem 0; border-bottom: 1px solid var(--line); }
   .note { font-size: 0.9rem; }
+  .smap { height: 320px; border: 1px solid var(--line); border-radius: 10px; margin: 0.5rem 0 0.9rem; }
+  .smap :global(.leaflet-popup-content a) { font-weight: 700; }
 </style>
