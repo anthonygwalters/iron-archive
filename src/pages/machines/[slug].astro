@@ -88,7 +88,7 @@ function renderMeasurements(measurements: Record<string, any[]> | undefined, loa
     {latest && (
       <p class="latest">
         📍 Last spotted at <a href={`/gyms/${latest.place_id}/`}>{latest.place_name}</a>
-        on {latest.date_seen} — <span class="muted">may be gone.</span>
+        on {latest.date_seen}. <span class="muted">A dated report, not a live status.</span>
       </p>
     )}
 
