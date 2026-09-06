@@ -17,3 +17,13 @@ lead_photo:
   key: obj/ph_01M1VW63TJDVDYSPQKATG3XNEH.jpeg
   contributor: web:anthonygwalters
   date: 2026-09-06
+unsorted:
+  documents:
+    - id: doc_01M1VWAXPE6J3TAA0KZ1P8HQX2
+      doc_type: vendor-page
+      tier: link
+      url: https://www.panattasport.com/en/free-weight-special/t-bar-row/
+      title: Panatta website
+      publisher: Panatta
+      contributor: web:anthonygwalters
+      date_added: 2026-09-06
