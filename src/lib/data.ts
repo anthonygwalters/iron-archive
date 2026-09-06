@@ -39,6 +39,7 @@ export type Generation = {
   label?: string;
   era?: string;
   brand_owner?: string;
+  model_number?: string[];
   loading?: string[];
   form_factor?: string;
   photos?: Asset[];
@@ -52,6 +53,7 @@ export type Machine = {
   status: string;
   brand: string;
   model?: string;
+  model_number?: string[];
   region?: string[];
   movement?: string;
   loading?: string[];
@@ -70,6 +72,7 @@ export type Sighting = {
   place_name: string;
   date_seen: string;
   reporter: string;
+  serial?: string;
   photo?: Asset;
   note?: string;
 };

@@ -27,6 +27,11 @@
     },
     "date_seen": { "type": "string", "format": "date" },
     "reporter": { "type": "string", "minLength": 1 },
+    "serial": {
+      "description": "Serial number of this specific physical unit, if visible. Per-unit (not a design spec) — often encodes a manufacture date and can tie the same unit across sightings.",
+      "type": "string",
+      "minLength": 1
+    },
     "photo": { "$ref": "#/$defs/asset" },
     "note": { "type": "string" }
   },

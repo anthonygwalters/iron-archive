@@ -13,6 +13,7 @@ region: [back, chest]
 movement: "pullover / lat isolation"
 loading: [plate-loaded]
 form_factor: lever/cam
+model_number: ["9NA-PO"]
 
 lead_photo:
   key: obj/ph_01J9Z3XK7QRS8TVWXYZ0ABCDEK
@@ -26,6 +27,7 @@ generations:
     label: "Original (DeLand)"
     era: "1970–1983"
     brand_owner: "Arthur Jones / Nautilus Sports-Medical"
+    model_number: ["S60", "S60-B"]
     assignment:
       contributor: gh:oldtimer
       confidence: estimated

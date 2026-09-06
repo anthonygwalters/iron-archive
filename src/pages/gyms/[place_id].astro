@@ -26,6 +26,7 @@ const sightings = (sightingsByGym.get(gym.id) ?? []).slice().sort((a, b) =>
           <li>
             {m ? <a href={`/machines/${m.slug}/`}>{m.brand}{m.model ? ` ${m.model}` : ""}</a> : <span>{s.machine_id}</span>}
             <span class="muted"> · reported {s.date_seen} by {s.reporter}</span>
+            {s.serial && <span class="muted"> · S/N {s.serial}</span>}
           </li>
         );
       })}

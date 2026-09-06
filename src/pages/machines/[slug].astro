@@ -42,6 +42,9 @@ function renderMeasurements(measurements: Record<string, any[]> | undefined, loa
       {machine.form_factor && <span class="pill">{machine.form_factor}</span>}
     </p>
     {machine.movement && <p class="muted">{machine.movement}</p>}
+    {machine.model_number?.length && (
+      <p class="muted">Model no.: <span class="mono">{machine.model_number.join(", ")}</span></p>
+    )}
 
     {assetUrl(machine.lead_photo) && (
       <img class="lead" src={assetUrl(machine.lead_photo)} alt={machine.lead_photo?.caption ?? title} loading="lazy" onerror="this.style.display='none'" />
@@ -61,6 +64,9 @@ function renderMeasurements(measurements: Record<string, any[]> | undefined, loa
         <section class="gen">
           <h2>{g.label ?? "Generation"}{g.era ? ` · ${g.era}` : ""}</h2>
           {g.brand_owner && <p class="muted">Built by {g.brand_owner}</p>}
+          {g.model_number?.length && (
+            <p class="muted">Model no.: <span class="mono">{g.model_number.join(", ")}</span></p>
+          )}
           {g.loading?.length && <p class="muted">Loads: {g.loading.join(", ")}{hf ? ` — leads with ${FIELD_LABELS[hf] ?? hf}` : ""}</p>}
 
           {renderMeasurements(g.measurements, loading).map(([field, obs]) => (
@@ -141,6 +147,7 @@ function renderMeasurements(measurements: Record<string, any[]> | undefined, loa
             <li>
               <a href={`/gyms/${s.place_id}/`}>{s.place_name}</a>
               <span class="muted"> · {s.date_seen} · {s.reporter}</span>
+              {s.serial && <span class="muted"> · S/N <span class="mono">{s.serial}</span></span>}
               {s.note && <div class="note muted">{s.note}</div>}
             </li>
           ))}

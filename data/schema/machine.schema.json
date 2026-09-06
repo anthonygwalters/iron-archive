@@ -29,6 +29,12 @@
 
     "brand": { "type": "string", "minLength": 1 },
     "model": { "type": "string", "minLength": 1 },
+    "model_number": {
+      "description": "Manufacturer SKU / part number(s) for this nameplate broadly (use generation-level for a specific build). Identity attribute, not a measurement.",
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "uniqueItems": true
+    },
 
     "region": {
       "description": "What it works. Coarse, closed, multi-value browse filter.",
@@ -208,6 +214,12 @@
         "era": { "type": "string" },
         "brand_owner": { "type": "string" },
         "assignment": { "$ref": "#/$defs/assignment" },
+        "model_number": {
+          "description": "Manufacturer SKU / part number(s) for this specific generation. A strong dedup and generation-identification signal.",
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true
+        },
 
         "region": {
           "type": "array",

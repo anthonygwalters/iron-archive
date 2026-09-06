@@ -8,6 +8,7 @@ place_id: osm_node_12345678
 place_name: "Iron Valley Gym"
 date_seen: "2026-08-30"
 reporter: gh:janedoe
+serial: "NAUT-1998-04412"
 photo:
   key: obj/ph_01J9Z3XK7QRS8TVWXYZ0ABCDEN
   contributor: gh:janedoe

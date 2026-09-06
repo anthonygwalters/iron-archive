@@ -112,6 +112,11 @@ async function handleMachine(form: FormData, env: Env, cors: Record<string, stri
   if (loading.length) record.loading = loading;
   const formFactor = str(form, "form_factor");
   if (formFactor) record.form_factor = formFactor;
+  const modelNumbers = str(form, "model_number")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  if (modelNumbers.length) record.model_number = modelNumbers;
   record.lead_photo = { key: photoKey, contributor: contributor(form), date: today() };
 
   const branch = `submit/machine-${(record.id as string).slice(4).toLowerCase()}`;
@@ -152,6 +157,8 @@ async function handleSighting(form: FormData, env: Env, cors: Record<string, str
   };
   const generationId = str(form, "generation_id");
   if (/^gen_[0-9A-HJKMNP-TV-Z]{26}$/.test(generationId)) sighting.generation_id = generationId;
+  const serial = str(form, "serial");
+  if (serial) sighting.serial = serial;
   if (photoKey) sighting.photo = { key: photoKey, contributor: contributor(form), date: dateSeen };
   const note = str(form, "note");
   if (note) sighting.note = note;
