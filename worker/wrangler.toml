@@ -6,7 +6,7 @@ compatibility_date = "2025-06-01"
 
 [vars]
 GITHUB_REPO = "anthonygwalters/iron-archive"
-ASSETS_BASE = "https://assets.theironarchive.org"
+ASSETS_BASE = "https://pub-db6d4b3c62494f3e8d112f79d7814bf5.r2.dev"
 ALLOWED_ORIGIN = "https://theironarchive.org"
 NOMINATIM_UA = "IronArchive/1.0 (+https://theironarchive.org)"
 
@@ -19,4 +19,4 @@ bucket_name = "iron-archive-assets"
 # Per-IP rate limiting. Create the namespace and paste its id here.
 [[kv_namespaces]]
 binding = "RATE_LIMIT"
-id = "REPLACE_WITH_KV_NAMESPACE_ID"
+id = "abe1d6308294454fb725a2eb328f27ca"

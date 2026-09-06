@@ -9,7 +9,8 @@ import { parse } from "yaml";
 
 const ROOT = process.cwd();
 const USE_FIXTURES = process.env.IRON_DEV_FIXTURES === "1";
-const ASSETS_BASE = process.env.IRON_ASSETS_BASE || "https://assets.theironarchive.org";
+const ASSETS_BASE =
+  process.env.IRON_ASSETS_BASE || "https://pub-db6d4b3c62494f3e8d112f79d7814bf5.r2.dev";
 
 export type Asset = { key: string; caption?: string; credit?: string };
 export type Observation = {

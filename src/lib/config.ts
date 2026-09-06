@@ -3,7 +3,8 @@
 // Worker/Turnstile are provisioned (the sitekey below is Cloudflare's public
 // "always passes" TEST key — replace it with the real one for production).
 export const SUBMIT_URL =
-  import.meta.env.PUBLIC_SUBMIT_URL ?? "https://submit.theironarchive.org";
+  import.meta.env.PUBLIC_SUBMIT_URL ??
+  "https://iron-archive-submit.a-grayson-walters.workers.dev";
 export const TURNSTILE_SITEKEY =
   import.meta.env.PUBLIC_TURNSTILE_SITEKEY ?? "1x00000000000000000000AA";
 
