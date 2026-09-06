@@ -1,0 +1,42 @@
+---
+import Base from "../../layouts/Base.astro";
+import { gyms, sightingsByGym } from "../../lib/data";
+
+const rows = gyms
+  .map((g) => ({
+    g,
+    count: (sightingsByGym.get(g.id) ?? []).length,
+    unverified: g.source === "local" || g.id.startsWith("local_") || typeof g.lat !== "number",
+  }))
+  .sort((a, b) => a.g.name.localeCompare(b.g.name));
+---
+
+<Base title="Gyms" description="Gyms where Iron Archive machines have been reported.">
+  <h1>Gyms</h1>
+  <p class="muted">
+    Places where machines have been reported — dated historical reports, not live
+    inventories.
+  </p>
+
+  {rows.length === 0 ? (
+    <p class="hole">No gyms yet — add a sighting to put one on the map.</p>
+  ) : (
+    <ul class="list">
+      {rows.map(({ g, count, unverified }) => (
+        <li>
+          <a href={`/gyms/${g.id}/`}>{g.name}</a>
+          {unverified && <span class="pill stub">unverified</span>}
+          <span class="muted"> · {count} machine{count === 1 ? "" : "s"} reported</span>
+          {g.address && <div class="muted addr">{g.address}</div>}
+        </li>
+      ))}
+    </ul>
+  )}
+</Base>
+
+<style>
+  ul.list { list-style: none; padding: 0; }
+  ul.list li { padding: 0.55rem 0; border-bottom: 1px solid var(--line); }
+  ul.list a { font-weight: 700; margin-right: 0.4rem; }
+  .addr { font-size: 0.85rem; margin-top: 0.15rem; }
+</style>

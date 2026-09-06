@@ -20,6 +20,12 @@ import { TURNSTILE_SITEKEY } from "../../lib/config";
         <ul id="suggest" class="suggest" hidden></ul>
       </div>
     </label>
+    <p class="muted nohit" id="nohit" hidden>
+      Not listed? Type the full name (and city) and submit anyway — we'll add it as a
+      provisional place you can pin to the map later. (Adding it to
+      <a href="https://www.openstreetmap.org" rel="noopener">OpenStreetMap</a> makes it
+      searchable for everyone.)
+    </p>
     <p class="muted pick-hint" id="pick-hint" hidden>✓ Using the place you picked.</p>
     <input type="hidden" name="place_id" id="place_id" />
     <input type="hidden" name="place_name" id="place_name" />
@@ -61,12 +67,14 @@ import { TURNSTILE_SITEKEY } from "../../lib/config";
     const gymInput = document.getElementById("gym") as HTMLInputElement;
     const suggest = document.getElementById("suggest") as HTMLElement;
     const pickHint = document.getElementById("pick-hint") as HTMLElement;
+    const nohit = document.getElementById("nohit") as HTMLElement;
     const setH = (id: string, v: string) => {
       (document.getElementById(id) as HTMLInputElement).value = v;
     };
     function clearPick() {
       setH("place_id", ""); setH("place_name", ""); setH("lat", ""); setH("lon", ""); setH("address", "");
       pickHint.hidden = true;
+      nohit.hidden = true;
     }
     let debounce: number | undefined;
     gymInput.addEventListener("input", () => {
@@ -79,7 +87,12 @@ import { TURNSTILE_SITEKEY } from "../../lib/config";
           const res = await fetch(`${SUBMIT_URL}/places?q=${encodeURIComponent(q)}`);
           const items = await res.json();
           suggest.innerHTML = "";
-          if (!Array.isArray(items) || items.length === 0) { suggest.hidden = true; return; }
+          if (!Array.isArray(items) || items.length === 0) {
+            suggest.hidden = true;
+            nohit.hidden = false; // tell them the free-text path is fine
+            return;
+          }
+          nohit.hidden = true;
           for (const it of items) {
             const li = document.createElement("li");
             const b = document.createElement("strong");
@@ -100,6 +113,7 @@ import { TURNSTILE_SITEKEY } from "../../lib/config";
               setH("lon", it.lon != null ? String(it.lon) : "");
               setH("address", it.address || "");
               pickHint.hidden = false;
+              nohit.hidden = true;
               suggest.hidden = true;
             });
             suggest.appendChild(li);

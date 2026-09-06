@@ -63,7 +63,14 @@ export type Machine = {
   generations?: Generation[];
   unsorted?: { measurements?: Record<string, Observation[]>; documents?: Doc[]; photos?: Asset[] };
 };
-export type Gym = { id: string; name: string; address?: string; lat?: number; lon?: number };
+export type Gym = {
+  id: string;
+  name: string;
+  address?: string;
+  lat?: number;
+  lon?: number;
+  source?: string;
+};
 export type Sighting = {
   id: string;
   machine_id: string;

@@ -1,21 +1,55 @@
 ---
 import Base from "../../layouts/Base.astro";
-import { gyms, sightingsByGym, machineById, type Gym } from "../../lib/data";
+import { gyms, sightingsByGym, machineById, machineTitle, type Gym } from "../../lib/data";
 
 export function getStaticPaths() {
   return gyms.map((y) => ({ params: { place_id: y.id }, props: { gym: y } }));
 }
 const { gym } = Astro.props as { gym: Gym };
-const sightings = (sightingsByGym.get(gym.id) ?? []).slice().sort((a, b) =>
-  (b.date_seen || "").localeCompare(a.date_seen || "")
-);
+const sightings = (sightingsByGym.get(gym.id) ?? [])
+  .slice()
+  .sort((a, b) => (b.date_seen || "").localeCompare(a.date_seen || ""));
+
+const hasCoords = typeof gym.lat === "number" && typeof gym.lon === "number";
+const unverified = gym.source === "local" || gym.id.startsWith("local_") || !hasCoords;
+
+// OSM slippy-map embed (keyless) + a link to the underlying object.
+const d = 0.004;
+const bbox = hasCoords ? `${gym.lon! - d},${gym.lat! - d},${gym.lon! + d},${gym.lat! + d}` : "";
+const embed = hasCoords
+  ? `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${gym.lat},${gym.lon}`
+  : "";
+const osmMatch = gym.id.match(/^osm_(node|way|relation)_(\d+)$/);
+const osmLink = osmMatch ? `https://www.openstreetmap.org/${osmMatch[1]}/${osmMatch[2]}` : null;
 ---
 
 <Base title={gym.name} description={`Machines reported at ${gym.name}.`}>
   <div data-pagefind-body>
-    <p class="crumb muted">Gym</p>
-    <h1>{gym.name}</h1>
+    <p class="crumb"><a href="/gyms/">Gyms</a> ›</p>
+    <h1>{gym.name} {unverified && <span class="pill stub">location unverified</span>}</h1>
     {gym.address && <p class="muted">{gym.address}</p>}
+
+    {hasCoords && (
+      <div class="map">
+        <iframe
+          title={`Map of ${gym.name}`}
+          src={embed}
+          loading="lazy"
+          referrerpolicy="no-referrer"
+        ></iframe>
+      </div>
+    )}
+    <p class="links">
+      {osmLink && <a href={osmLink} rel="noopener">View on OpenStreetMap ↗</a>}
+    </p>
+
+    {unverified && (
+      <p class="hole">
+        This place hasn't been matched to a map location yet. Adding it to
+        <a href="https://www.openstreetmap.org" rel="noopener"> OpenStreetMap</a> lets it
+        be pinned and searchable.
+      </p>
+    )}
 
     <h2>Machines reported here</h2>
     <p class="muted">Dated historical reports, not a live inventory — a machine may since have moved on.</p>
@@ -24,7 +58,7 @@ const sightings = (sightingsByGym.get(gym.id) ?? []).slice().sort((a, b) =>
         const m = machineById.get(s.machine_id);
         return (
           <li>
-            {m ? <a href={`/machines/${m.slug}/`}>{m.brand}{m.model ? ` ${m.model}` : ""}</a> : <span>{s.machine_id}</span>}
+            {m ? <a href={`/machines/${m.slug}/`}>{machineTitle(m)}</a> : <span>{s.machine_id}</span>}
             <span class="muted"> · reported {s.date_seen} by {s.reporter}</span>
             {s.serial && <span class="muted"> · S/N {s.serial}</span>}
           </li>
@@ -36,6 +70,9 @@ const sightings = (sightingsByGym.get(gym.id) ?? []).slice().sort((a, b) =>
 
 <style>
   .crumb { font-size: 0.85rem; margin-bottom: 0; }
+  .map { margin: 0.75rem 0; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  .map iframe { display: block; width: 100%; height: 300px; border: 0; }
+  .links { margin: 0.25rem 0 0.5rem; font-size: 0.9rem; }
   ul.list { list-style: none; padding: 0; }
   ul.list li { padding: 0.5rem 0; border-bottom: 1px solid var(--line); }
 </style>
