@@ -45,7 +45,8 @@ function renderMeasurements(measurements: Record<string, any[]> | undefined, loa
 ---
 
 <Base title={title} description={`Specs and sightings for the ${title}.`}>
-  <div data-pagefind-body>
+  <div class="machine" data-pagefind-body>
+    <div class="mhead">
     <p class="crumb"><a href="/">Machines</a> › <a href={`/brands/${brandSlug(machine.brand)}/`}>{machine.brand}</a> ›</p>
     <h1>{title}</h1>
     <p>
@@ -58,11 +59,15 @@ function renderMeasurements(measurements: Record<string, any[]> | undefined, loa
     {machine.model_number?.length && (
       <p class="muted">Model no.: <span class="mono">{machine.model_number.join(", ")}</span></p>
     )}
+    </div>
 
     {assetUrl(machine.lead_photo) && (
-      <img class="lead" src={assetUrl(machine.lead_photo)} alt={machine.lead_photo?.caption ?? title} loading="lazy" onerror="this.style.display='none'" />
+      <aside class="media">
+        <img class="lead" src={assetUrl(machine.lead_photo)} alt={machine.lead_photo?.caption ?? title} loading="lazy" onerror="this.style.display='none'" />
+      </aside>
     )}
 
+    <div class="body">
     {latest && (
       <p class="latest">
         📍 Last spotted at <a href={`/gyms/${latest.place_id}/`}>{latest.place_name}</a>
@@ -207,12 +212,23 @@ function renderMeasurements(measurements: Record<string, any[]> | undefined, loa
         </ul>
       )}
     </section>
+    </div>
   </div>
 </Base>
 
 <style>
   .crumb { color: var(--muted); font-size: 0.85rem; margin-bottom: 0; }
-  .lead { max-width: 100%; border-radius: 10px; border: 1px solid var(--line); margin: 0.75rem 0; }
+  /* Mobile: single column, natural source order (header, photo, body) — unchanged. */
+  .machine { display: grid; grid-template-columns: 1fr; column-gap: 1.75rem; }
+  .media { margin: 0.75rem 0; }
+  .lead { width: 100%; border-radius: 10px; border: 1px solid var(--line); display: block; }
+  /* Desktop: header full-width on top, body left, photo in a sticky right column. */
+  @media (min-width: 760px) {
+    .machine { grid-template-columns: minmax(0, 1fr) 300px; align-items: start; }
+    .mhead { grid-column: 1 / -1; }
+    .body { grid-column: 1; grid-row: 2; }
+    .media { grid-column: 2; grid-row: 2; position: sticky; top: 1rem; margin: 0; }
+  }
   .latest { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 0.5rem 0.8rem; }
   section.gen { margin-top: 1.5rem; }
   .docs ul, .list { list-style: none; padding: 0; }
