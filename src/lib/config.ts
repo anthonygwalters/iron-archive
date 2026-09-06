@@ -6,7 +6,7 @@ export const SUBMIT_URL =
   import.meta.env.PUBLIC_SUBMIT_URL ??
   "https://iron-archive-submit.a-grayson-walters.workers.dev";
 export const TURNSTILE_SITEKEY =
-  import.meta.env.PUBLIC_TURNSTILE_SITEKEY ?? "1x00000000000000000000AA";
+  import.meta.env.PUBLIC_TURNSTILE_SITEKEY ?? "0x4AAAAAAEqaCfd8bkmGsTP-";
 
 export const REGIONS = [
   "chest", "back", "shoulders", "arms", "legs", "glutes", "hamstrings",
