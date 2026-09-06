@@ -26,7 +26,7 @@ const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : As
     <meta name="twitter:title" content={fullTitle} />
     <meta name="twitter:description" content={desc} />
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='14' font-size='14'>🏋️</text></svg>" />
-    <style>
+    <style is:global>
       :root {
         --ink: #1a1a1a; --muted: #6b6b6b; --line: #e3e0da; --bg: #faf8f4;
         --card: #ffffff; --accent: #8a3324; --warn: #b4690e; --link: #8a3324;
@@ -43,7 +43,8 @@ const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : As
         margin: 0; background: var(--bg); color: var(--ink);
         font: 16px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       }
-      a { color: var(--link); }
+      a, a:visited { color: var(--link); }
+      a:hover { text-decoration: none; }
       header.site {
         display: flex; align-items: baseline; gap: 1rem; flex-wrap: wrap;
         padding: 1rem 1.25rem; border-bottom: 1px solid var(--line);
