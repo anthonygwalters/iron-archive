@@ -5,6 +5,8 @@ interface Props {
 }
 const { title, description } = Astro.props;
 const fullTitle = title ? `${title} — Iron Archive` : "Iron Archive";
+const desc = description ?? "A public reference for strength-training machine specifications, especially discontinued models.";
+const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : Astro.url.pathname;
 ---
 
 <!doctype html>
@@ -13,7 +15,16 @@ const fullTitle = title ? `${title} — Iron Archive` : "Iron Archive";
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{fullTitle}</title>
-    {description && <meta name="description" content={description} />}
+    <meta name="description" content={desc} />
+    <link rel="canonical" href={canonical} />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Iron Archive" />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={desc} />
+    <meta property="og:url" content={canonical} />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={desc} />
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='14' font-size='14'>🏋️</text></svg>" />
     <style>
       :root {
@@ -59,6 +70,7 @@ const fullTitle = title ? `${title} — Iron Archive` : "Iron Archive";
       <nav>
         <a href="/">Machines</a>
         <a href="/search/">Search</a>
+        <a href="/about/">About</a>
       </nav>
     </header>
     <main>

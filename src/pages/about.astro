@@ -1,0 +1,73 @@
+---
+import Base from "../layouts/Base.astro";
+---
+
+<Base title="About" description="What Iron Archive is, why it exists, and how to contribute.">
+  <h1>About Iron Archive</h1>
+
+  <p class="lede">
+    A public reference for strength-training machine specifications — especially the
+    discontinued models where no manufacturer documentation survives.
+  </p>
+
+  <h2>The facts nobody publishes</h2>
+  <p>
+    Two numbers decide how a machine actually trains you, and neither is in the
+    manual:
+  </p>
+  <ul>
+    <li><strong>Starting weight</strong> — the real load with the pin at the lowest
+      plate, carriage and linkage included.</li>
+    <li><strong>Leverage ratio</strong> — what the muscle actually feels, not the
+      number stamped on the stack. On plate-loaded and cam machines the difference
+      is large enough to make cross-gym comparison meaningless without it.</li>
+  </ul>
+  <p>
+    There's no single "key number" for every machine — the right one depends on how
+    it loads (a leverage <em>curve</em> for cams, pulley ratio for cables,
+    counterbalance for a Smith, and so on). Iron Archive collects these,
+    field-measured and openly sourced.
+  </p>
+
+  <h2>How it's built to stay honest</h2>
+  <ul>
+    <li><strong>Provenance on every value</strong> — who measured it, when, how, and
+      how sure.</li>
+    <li><strong>Disagreements are shown, not averaged.</strong> Two different
+      readings both display, flagged for a tiebreak. Nothing is silently
+      overwritten or collapsed to one number.</li>
+    <li><strong>Unknowns are visible</strong> — a missing value is an open invitation
+      to add it, not a hidden gap.</li>
+    <li><strong>Generations are separate.</strong> A model's 1978 original and its
+      2010s remake are different machines, kept apart so their measurements don't
+      contaminate each other.</li>
+  </ul>
+
+  <h2>Contributing</h2>
+  <p>
+    Contributors are gym people with phones, not developers. When the submission
+    form is live, the “measure one / add it” links across the site open a prefilled
+    submission that becomes a reviewed pull request — you never touch Git. A photo
+    and a guessed model name is already a legitimate record.
+  </p>
+  <p>
+    If you're taking measurements, please follow the
+    <a href="https://github.com/anthonygwalters/iron-archive/blob/main/docs/protocol.md">measurement protocol</a>:
+    a hanging scale, a stated range-of-motion position, three trials recorded
+    individually.
+  </p>
+
+  <h2>Open by design</h2>
+  <p>
+    The whole project is public: the records, the schemas, and the code live in the
+    <a href="https://github.com/anthonygwalters/iron-archive">GitHub repository</a>.
+    There's no database and no admin panel — the pull-request list is the review
+    queue.
+  </p>
+</Base>
+
+<style>
+  .lede { font-size: 1.1rem; max-width: 62ch; }
+  ul { max-width: 68ch; }
+  li { margin: 0.3rem 0; }
+</style>

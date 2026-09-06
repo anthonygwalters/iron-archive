@@ -37,7 +37,7 @@ function renderMeasurements(measurements: Record<string, any[]> | undefined, loa
     {machine.movement && <p class="muted">{machine.movement}</p>}
 
     {assetUrl(machine.lead_photo) && (
-      <img class="lead" src={assetUrl(machine.lead_photo)} alt={machine.lead_photo?.caption ?? title} loading="lazy" />
+      <img class="lead" src={assetUrl(machine.lead_photo)} alt={machine.lead_photo?.caption ?? title} loading="lazy" onerror="this.style.display='none'" />
     )}
 
     {latest && (
