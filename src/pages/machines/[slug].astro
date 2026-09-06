@@ -1,6 +1,7 @@
 ---
 import Base from "../../layouts/Base.astro";
 import MeasurementList from "../../components/MeasurementList.astro";
+import Contributor from "../../components/Contributor.astro";
 import {
   machines, machineById, sightingsByMachine, gymById,
   headlineField, FIELD_LABELS, assetUrl, relatedMachines, machineTitle, brandSlug,
@@ -198,7 +199,7 @@ function renderMeasurements(measurements: Record<string, any[]> | undefined, loa
           {sightings.map((s) => (
             <li>
               <a href={`/gyms/${s.place_id}/`}>{s.place_name}</a>
-              <span class="muted"> · {s.date_seen} · {s.reporter}</span>
+              <span class="muted"> · {s.date_seen} · </span><Contributor handle={s.reporter} />
               {s.serial && <span class="muted"> · S/N <span class="mono">{s.serial}</span></span>}
               {s.note && <div class="note muted">{s.note}</div>}
             </li>

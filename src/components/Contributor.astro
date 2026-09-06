@@ -1,0 +1,11 @@
+---
+// Renders a submitter handle: verified gh:<login> links to their contributor
+// page; unverified web:<handle> (and anonymous) render as plain text.
+interface Props { handle?: string }
+const { handle } = Astro.props;
+const gh = handle?.startsWith("gh:") ? handle.slice(3) : null;
+const web = handle?.startsWith("web:") ? handle.slice(4) : null;
+---
+{gh
+  ? <a href={`/contributors/${gh}/`}>@{gh}</a>
+  : <span>{web ?? handle ?? "—"}</span>}

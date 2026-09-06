@@ -1,6 +1,7 @@
 ---
 import Base from "../../layouts/Base.astro";
 import { gyms, sightingsByGym, machineById, machineTitle, type Gym } from "../../lib/data";
+import Contributor from "../../components/Contributor.astro";
 
 export function getStaticPaths() {
   return gyms.map((y) => ({ params: { place_id: y.id }, props: { gym: y } }));
@@ -59,7 +60,7 @@ const osmLink = osmMatch ? `https://www.openstreetmap.org/${osmMatch[1]}/${osmMa
         return (
           <li>
             {m ? <a href={`/machines/${m.slug}/`}>{machineTitle(m)}</a> : <span>{s.machine_id}</span>}
-            <span class="muted"> · reported {s.date_seen} by {s.reporter}</span>
+            <span class="muted"> · reported {s.date_seen} by </span><Contributor handle={s.reporter} />
             {s.serial && <span class="muted"> · S/N {s.serial}</span>}
           </li>
         );
