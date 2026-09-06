@@ -14,7 +14,7 @@ loading:
 form_factor: other
 lead_photo:
   key: obj/ph_01M1VT8T8GBGKCEDYXN69GS0SR.jpeg
-  contributor: web:anthonygwalters
+  contributor: gh:anthonygwalters
   date: 2026-09-06
 unsorted:
   documents:
@@ -24,5 +24,5 @@ unsorted:
       url: https://atlantisstrength.com/gym-equipment/pw412
       title: Atlantis website
       publisher: Atlantis
-      contributor: web:anthonygwalters
+      contributor: gh:anthonygwalters
       date_added: 2026-09-06

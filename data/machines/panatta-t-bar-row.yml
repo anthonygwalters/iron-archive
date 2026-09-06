@@ -15,7 +15,7 @@ model_number:
   - 1FW007
 lead_photo:
   key: obj/ph_01M1VW63TJDVDYSPQKATG3XNEH.jpeg
-  contributor: web:anthonygwalters
+  contributor: gh:anthonygwalters
   date: 2026-09-06
 unsorted:
   documents:
@@ -25,5 +25,5 @@ unsorted:
       url: https://www.panattasport.com/en/free-weight-special/t-bar-row/
       title: Panatta website
       publisher: Panatta
-      contributor: web:anthonygwalters
+      contributor: gh:anthonygwalters
       date_added: 2026-09-06
