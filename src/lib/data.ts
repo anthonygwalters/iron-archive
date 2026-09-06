@@ -228,3 +228,31 @@ export function relatedMachines(m: Machine): Array<{ label: string; machine: Mac
 export function machineTitle(m: Machine): string {
   return `${m.brand}${m.model ? " " + m.model : ""}`;
 }
+
+// --- Manufacturers (brand reverse pages) --------------------------------
+
+export function brandSlug(brand: string): string {
+  return (
+    brand.toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") ||
+    "unknown"
+  );
+}
+
+export type Brand = { slug: string; name: string; machines: Machine[] };
+
+export const brands: Brand[] = (() => {
+  const map = new Map<string, Brand>();
+  for (const m of machines) {
+    const slug = brandSlug(m.brand);
+    let b = map.get(slug);
+    if (!b) {
+      b = { slug, name: m.brand, machines: [] };
+      map.set(slug, b);
+    }
+    b.machines.push(m); // `machines` is already sorted by brand+model
+  }
+  return [...map.values()].sort((a, b) => a.name.localeCompare(b.name));
+})();
+
+export const brandBySlug = new Map(brands.map((b) => [b.slug, b]));
+

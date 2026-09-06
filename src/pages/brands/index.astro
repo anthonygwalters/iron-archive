@@ -1,0 +1,28 @@
+---
+import Base from "../../layouts/Base.astro";
+import { brands } from "../../lib/data";
+---
+
+<Base title="Brands" description="Strength-training machine manufacturers in the Iron Archive.">
+  <h1>Brands</h1>
+  <p class="muted">Manufacturers with machines in the archive.</p>
+
+  {brands.length === 0 ? (
+    <p class="hole">No machines yet — add one to start a brand.</p>
+  ) : (
+    <ul class="list">
+      {brands.map((b) => (
+        <li>
+          <a href={`/brands/${b.slug}/`}>{b.name}</a>
+          <span class="muted"> · {b.machines.length} machine{b.machines.length === 1 ? "" : "s"}</span>
+        </li>
+      ))}
+    </ul>
+  )}
+</Base>
+
+<style>
+  ul.list { list-style: none; padding: 0; }
+  ul.list li { padding: 0.55rem 0; border-bottom: 1px solid var(--line); }
+  ul.list a { font-weight: 700; margin-right: 0.4rem; }
+</style>

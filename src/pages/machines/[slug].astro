@@ -3,7 +3,7 @@ import Base from "../../layouts/Base.astro";
 import MeasurementList from "../../components/MeasurementList.astro";
 import {
   machines, machineById, sightingsByMachine, gymById,
-  headlineField, FIELD_LABELS, assetUrl, relatedMachines, machineTitle,
+  headlineField, FIELD_LABELS, assetUrl, relatedMachines, machineTitle, brandSlug,
   type Machine, type Generation, type Doc,
 } from "../../lib/data";
 
@@ -45,7 +45,7 @@ function renderMeasurements(measurements: Record<string, any[]> | undefined, loa
 
 <Base title={title} description={`Specs and sightings for the ${title}.`}>
   <div data-pagefind-body>
-    <p class="crumb"><a href="/">Machines</a> ›</p>
+    <p class="crumb"><a href="/">Machines</a> › <a href={`/brands/${brandSlug(machine.brand)}/`}>{machine.brand}</a> ›</p>
     <h1>{title}</h1>
     <p>
       {machine.status === "stub" && <span class="pill stub">stub</span>}
