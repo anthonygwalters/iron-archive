@@ -1,0 +1,92 @@
+---
+import Base from "../../layouts/Base.astro";
+import { TURNSTILE_SITEKEY, LINK_KINDS } from "../../lib/config";
+import { machines, machineTitle } from "../../lib/data";
+const options = machines.map((m) => ({ id: m.id, title: machineTitle(m) }))
+  .sort((a, b) => a.title.localeCompare(b.title));
+---
+
+<Base title="Relate machines" description="Link this machine to a related one.">
+  <h1>Relate to another machine</h1>
+  <p class="muted" id="ctx">Connect this machine to a related one.</p>
+  <p class="muted">
+    Use this for the same model across eras (a <em>remake</em>), machines in the same
+    <em>family</em>, or a <em>rebrand / clone</em> (the same casting sold under another
+    name). Relationships show on both machines.
+  </p>
+
+  <form id="f" class="form">
+    <input type="hidden" name="machine_id" id="machine_id" />
+    <input type="hidden" name="slug" id="slug" />
+
+    <label>Relationship <span class="req">*</span>
+      <select name="kind" required>
+        {LINK_KINDS.map((k) => <option value={k.value}>{k.label}</option>)}
+      </select>
+    </label>
+
+    <label>Other machine <span class="req">*</span>
+      <select name="target_id" id="target_id" required>
+        <option value="">— choose a machine —</option>
+        {options.map((o) => <option value={o.id}>{o.title}</option>)}
+      </select>
+    </label>
+
+    <label>Your handle (optional)
+      <input name="handle" placeholder="github user or a name" />
+    </label>
+
+    <div class="cf-turnstile" data-sitekey={TURNSTILE_SITEKEY}></div>
+    <button type="submit">Submit for review</button>
+    <p id="result" class="result" hidden></p>
+  </form>
+
+  <script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+  <script>
+    import { SUBMIT_URL } from "../../lib/config";
+    const params = new URLSearchParams(location.search);
+    const machineId = params.get("machine") || "";
+    (document.getElementById("machine_id") as HTMLInputElement).value = machineId;
+    (document.getElementById("slug") as HTMLInputElement).value = params.get("slug") || "";
+    const name = params.get("name") || "this machine";
+    document.getElementById("ctx")!.textContent = `Connect ${name} to a related machine.`;
+
+    // Don't offer to link a machine to itself.
+    const sel = document.getElementById("target_id") as HTMLSelectElement;
+    for (const opt of Array.from(sel.options)) if (opt.value === machineId) opt.remove();
+
+    const form = document.getElementById("f") as HTMLFormElement;
+    const result = document.getElementById("result") as HTMLElement;
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const btn = form.querySelector("button")!;
+      btn.disabled = true;
+      result.hidden = false;
+      result.textContent = "Submitting…";
+      try {
+        const res = await fetch(`${SUBMIT_URL}/links`, { method: "POST", body: new FormData(form) });
+        const data = await res.json();
+        if (res.ok && data.pr) {
+          result.innerHTML = `Thanks! Up for review: <a href="${data.pr}" target="_blank" rel="noopener">view the pull request</a>.`;
+          form.reset();
+        } else {
+          result.textContent = `Couldn't submit: ${data.error || res.status}`;
+          btn.disabled = false;
+        }
+      } catch (err) {
+        result.textContent = `Network error: ${err}`;
+        btn.disabled = false;
+      }
+    });
+  </script>
+</Base>
+
+<style>
+  .form { max-width: 560px; display: grid; gap: 1rem; margin-top: 1rem; }
+  label { display: grid; gap: 0.3rem; font-weight: 600; font-size: 0.95rem; }
+  input, select { font: inherit; padding: 0.5rem; border: 1px solid var(--line); border-radius: 6px; background: var(--card); color: var(--ink); }
+  .req { color: var(--accent); }
+  button { font: inherit; font-weight: 700; padding: 0.6rem 1rem; border: 0; border-radius: 8px; background: var(--accent); color: #fff; cursor: pointer; width: fit-content; }
+  button:disabled { opacity: 0.6; cursor: default; }
+  .result { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 0.6rem 0.8rem; }
+</style>

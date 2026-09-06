@@ -36,16 +36,34 @@ export async function existsOnMain(env: Env, path: string): Promise<boolean> {
   return r.ok;
 }
 
+/** Read a file's text + blob sha from a ref. Null if it doesn't exist. */
+export async function getFile(
+  env: Env,
+  path: string,
+  ref: string
+): Promise<{ content: string; sha: string } | null> {
+  const r = await gh(env, `/repos/${env.GITHUB_REPO}/contents/${path}?ref=${ref}`);
+  if (r.status === 404) return null;
+  if (!r.ok) throw new Error(`get ${path}: ${r.status} ${await r.text()}`);
+  const d = (await r.json()) as { content: string; sha: string };
+  const bin = atob(d.content.replace(/\n/g, ""));
+  const bytes = Uint8Array.from(bin, (c) => c.charCodeAt(0));
+  return { content: new TextDecoder().decode(bytes), sha: d.sha };
+}
+
 export async function putFile(
   env: Env,
   path: string,
   content: string,
   message: string,
-  branch: string
+  branch: string,
+  sha?: string
 ): Promise<void> {
+  const body: Record<string, unknown> = { message, content: b64(content), branch };
+  if (sha) body.sha = sha; // required when updating an existing file
   const r = await gh(env, `/repos/${env.GITHUB_REPO}/contents/${path}`, {
     method: "PUT",
-    body: JSON.stringify({ message, content: b64(content), branch }),
+    body: JSON.stringify(body),
   });
   if (!r.ok) throw new Error(`put ${path}: ${r.status} ${await r.text()}`);
 }

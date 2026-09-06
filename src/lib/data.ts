@@ -166,3 +166,55 @@ export function displayValue(o: Observation): string {
   const rounded = Math.round(v * 100) / 100;
   return o.unit && o.unit !== "ratio" ? `${rounded} ${o.unit}` : `${rounded}`;
 }
+
+// --- Relationships between machines --------------------------------------
+
+const LINK_LABEL_OUT: Record<string, string> = {
+  family: "Family",
+  remake_of: "Remake of",
+  rebrand_of: "Rebrand of",
+  same_as: "Same as",
+};
+const LINK_LABEL_IN: Record<string, string> = {
+  family: "Family",
+  remake_of: "Remade as",
+  rebrand_of: "Rebranded as",
+  same_as: "Same as",
+};
+
+// machine id -> the machines that link TO it (so a one-way link shows on both).
+export const incomingLinks = new Map<string, Array<{ kind: string; from: Machine }>>();
+for (const m of machines) {
+  for (const [kind, ids] of Object.entries(m.links ?? {})) {
+    for (const tid of (ids as string[]) ?? []) {
+      const arr = incomingLinks.get(tid) ?? [];
+      arr.push({ kind, from: m });
+      incomingLinks.set(tid, arr);
+    }
+  }
+}
+
+export function relatedMachines(m: Machine): Array<{ label: string; machine: Machine }> {
+  const out: Array<{ label: string; machine: Machine }> = [];
+  const seen = new Set<string>();
+  for (const [kind, ids] of Object.entries(m.links ?? {})) {
+    for (const tid of (ids as string[]) ?? []) {
+      const tgt = machineById.get(tid);
+      if (tgt && !seen.has(tgt.id)) {
+        out.push({ label: LINK_LABEL_OUT[kind] ?? kind, machine: tgt });
+        seen.add(tgt.id);
+      }
+    }
+  }
+  for (const { kind, from } of incomingLinks.get(m.id) ?? []) {
+    if (!seen.has(from.id)) {
+      out.push({ label: LINK_LABEL_IN[kind] ?? kind, machine: from });
+      seen.add(from.id);
+    }
+  }
+  return out;
+}
+
+export function machineTitle(m: Machine): string {
+  return `${m.brand}${m.model ? " " + m.model : ""}`;
+}

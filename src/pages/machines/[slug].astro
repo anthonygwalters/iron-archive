@@ -2,8 +2,9 @@
 import Base from "../../layouts/Base.astro";
 import MeasurementList from "../../components/MeasurementList.astro";
 import {
-  machines, machineById, sightingsByMachine, gymById,
-  headlineField, FIELD_LABELS, assetUrl, type Machine, type Generation,
+  machines, machineById, sightingsByMachine,
+  headlineField, FIELD_LABELS, assetUrl, relatedMachines, machineTitle,
+  type Machine, type Generation, type Doc,
 } from "../../lib/data";
 
 export function getStaticPaths() {
@@ -13,7 +14,12 @@ const { machine } = Astro.props as { machine: Machine };
 const title = `${machine.brand}${machine.model ? " " + machine.model : ""}`;
 const sightings = sightingsByMachine.get(machine.id) ?? [];
 const latest = sightings[0];
-const addSightingUrl = `/contribute/sighting/?machine=${machine.id}&name=${encodeURIComponent(title)}`;
+const q = `machine=${machine.id}&slug=${machine.slug}&name=${encodeURIComponent(title)}`;
+const addSightingUrl = `/contribute/sighting/?${q}`;
+const addDocUrl = `/contribute/document/?${q}`;
+const addLinkUrl = `/contribute/link/?${q}`;
+const related = relatedMachines(machine);
+const unsortedDocs: Doc[] = machine.unsorted?.documents ?? [];
 
 // Effective loading for a generation falls back to the nameplate's.
 const genLoading = (g: Generation) => (g.loading?.length ? g.loading : machine.loading);
@@ -91,6 +97,38 @@ function renderMeasurements(measurements: Record<string, any[]> | undefined, loa
         ))}
       </section>
     )}
+
+    <section class="docs-section">
+      <h2>Documentation</h2>
+      <p><a href={addDocUrl}>📄 Have a manual, catalog, ad, or patent? Add documentation →</a></p>
+      {unsortedDocs.length > 0 && (
+        <ul class="list">
+          {unsortedDocs.map((d) => (
+            <li>
+              <span class="pill">{d.doc_type}</span>
+              {d.url ? <a href={d.url} rel="nofollow noopener">{d.title ?? d.url}</a> : <span>{d.title ?? d.id}</span>}
+              {d.year && <span class="muted"> · {d.year}</span>}
+              {d.publisher && <span class="muted"> · {d.publisher}</span>}
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+
+    <section class="related">
+      <h2>Related machines</h2>
+      <p><a href={addLinkUrl}>🔗 Same family, a remake, or a rebrand? Link it →</a></p>
+      {related.length > 0 && (
+        <ul class="list">
+          {related.map((r) => (
+            <li>
+              <span class="pill">{r.label}</span>
+              <a href={`/machines/${r.machine.slug}/`}>{machineTitle(r.machine)}</a>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
 
     <section class="sightings">
       <h2>Spotted in the wild</h2>

@@ -16,3 +16,15 @@ export const LOADINGS = [
   "selectorized", "plate-loaded", "pneumatic", "hydraulic", "assisted", "other",
 ];
 export const FORM_FACTORS = ["lever/cam", "cable", "smith", "pendulum", "other"];
+
+export const DOC_TYPES = [
+  "manual", "catalog/brochure", "advertisement", "vendor-page", "patent",
+  "spec-sheet", "article", "forum", "video", "other",
+];
+
+export const LINK_KINDS = [
+  { value: "remake_of", label: "This is a remake of…" },
+  { value: "family", label: "Same family as…" },
+  { value: "rebrand_of", label: "This is a rebrand / clone of…" },
+  { value: "same_as", label: "Same as (duplicate nameplate)…" },
+];
