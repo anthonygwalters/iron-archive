@@ -27,3 +27,12 @@ unsorted:
       publisher: Panatta
       contributor: gh:anthonygwalters
       date_added: 2026-09-06
+    - id: doc_01M1W2950623WPKNRKJ4E9GBYX
+      doc_type: video
+      tier: link
+      url: https://www.youtube.com/watch?v=s95GXt5nHL0
+      title: '"The Panatta T-Bar Row: Redefining Back Strength and Performance"'
+      publisher: Panatta
+      year: 2025
+      contributor: gh:anthonygwalters
+      date_added: 2026-09-06
