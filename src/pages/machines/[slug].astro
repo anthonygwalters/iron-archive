@@ -55,7 +55,7 @@ function renderMeasurements(measurements: Record<string, any[]> | undefined, loa
       {machine.status === "stub" && <span class="pill stub">stub</span>}
       {(machine.region ?? []).map((r) => <span class="pill">{r}</span>)}
       {(machine.loading ?? []).map((l) => <span class="pill">{l}</span>)}
-      {machine.form_factor && <span class="pill">{machine.form_factor}</span>}
+      {machine.mechanism && <span class="pill">{machine.mechanism}</span>}
     </p>
     {machine.movement && <p class="muted">{machine.movement}</p>}
     {machine.model_number?.length && (

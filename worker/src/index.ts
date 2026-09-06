@@ -177,8 +177,8 @@ async function handleMachine(form: FormData, env: Env, cors: Record<string, stri
   if (movement) record.movement = movement;
   const loading = list(form, "loading");
   if (loading.length) record.loading = loading;
-  const formFactor = str(form, "form_factor");
-  if (formFactor) record.form_factor = formFactor;
+  const mechanism = str(form, "mechanism");
+  if (mechanism) record.mechanism = mechanism;
   const modelNumbers = str(form, "model_number")
     .split(",")
     .map((s) => s.trim())

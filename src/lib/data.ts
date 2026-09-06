@@ -42,7 +42,7 @@ export type Generation = {
   brand_owner?: string;
   model_number?: string[];
   loading?: string[];
-  form_factor?: string;
+  mechanism?: string;
   photos?: Asset[];
   measurements?: Record<string, Observation[]>;
   specs?: Record<string, Observation[]>;
@@ -58,7 +58,7 @@ export type Machine = {
   region?: string[];
   movement?: string;
   loading?: string[];
-  form_factor?: string;
+  mechanism?: string;
   lead_photo?: Asset;
   links?: Record<string, string[]>;
   generations?: Generation[];

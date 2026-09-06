@@ -10,7 +10,7 @@ region:
 movement: Chest-supported
 loading:
   - plate-loaded
-form_factor: other
+mechanism: lever
 model_number:
   - 1FW007
 lead_photo:

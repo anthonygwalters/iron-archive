@@ -1,6 +1,6 @@
 ---
 import Base from "../../layouts/Base.astro";
-import { TURNSTILE_SITEKEY, REGIONS, LOADINGS, FORM_FACTORS } from "../../lib/config";
+import { TURNSTILE_SITEKEY, REGIONS, LOADINGS, MECHANISMS } from "../../lib/config";
 ---
 
 <Base title="Add a machine" description="Submit a strength-training machine to the Iron Archive.">
@@ -33,10 +33,10 @@ import { TURNSTILE_SITEKEY, REGIONS, LOADINGS, FORM_FACTORS } from "../../lib/co
       ))}
     </fieldset>
 
-    <label>Form factor
-      <select name="form_factor">
+    <label>Mechanism
+      <select name="mechanism">
         <option value="">—</option>
-        {FORM_FACTORS.map((f) => <option value={f}>{f}</option>)}
+        {MECHANISMS.map((f) => <option value={f}>{f}</option>)}
       </select>
     </label>
 

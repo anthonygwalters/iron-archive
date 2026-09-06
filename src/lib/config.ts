@@ -15,7 +15,7 @@ export const REGIONS = [
 export const LOADINGS = [
   "selectorized", "plate-loaded", "pneumatic", "hydraulic", "assisted", "other",
 ];
-export const FORM_FACTORS = ["lever/cam", "cable", "smith", "pendulum", "other"];
+export const MECHANISMS = ["lever", "cam", "cable", "smith", "sled", "pendulum", "other"];
 
 export const DOC_TYPES = [
   "manual", "catalog/brochure", "advertisement", "vendor-page", "patent",

@@ -11,7 +11,7 @@ region:
 movement: 30 degree sled
 loading:
   - plate-loaded
-form_factor: other
+mechanism: sled
 lead_photo:
   key: obj/ph_01M1VT8T8GBGKCEDYXN69GS0SR.jpeg
   contributor: gh:anthonygwalters

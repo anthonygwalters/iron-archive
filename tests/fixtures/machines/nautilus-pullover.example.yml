@@ -12,7 +12,7 @@ model: Pullover
 region: [back, chest]
 movement: "pullover / lat isolation"
 loading: [plate-loaded]
-form_factor: lever/cam
+mechanism: cam
 model_number: ["9NA-PO"]
 
 lead_photo:

@@ -54,7 +54,7 @@
       "uniqueItems": true,
       "items": { "enum": ["selectorized", "plate-loaded", "pneumatic", "hydraulic", "assisted", "other"] }
     },
-    "form_factor": { "enum": ["lever/cam", "cable", "smith", "pendulum", "other"] },
+    "mechanism": { "enum": ["lever", "cam", "cable", "smith", "sled", "pendulum", "other"] },
 
     "lead_photo": { "$ref": "#/$defs/asset" },
 
@@ -231,7 +231,7 @@
           "uniqueItems": true,
           "items": { "enum": ["selectorized", "plate-loaded", "pneumatic", "hydraulic", "assisted", "other"] }
         },
-        "form_factor": { "enum": ["lever/cam", "cable", "smith", "pendulum", "other"] },
+        "mechanism": { "enum": ["lever", "cam", "cable", "smith", "sled", "pendulum", "other"] },
 
         "photos": { "type": "array", "items": { "$ref": "#/$defs/asset" } },
         "measurements": { "$ref": "#/$defs/measurements" },
