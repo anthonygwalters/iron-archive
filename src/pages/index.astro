@@ -12,8 +12,10 @@ import { machines, headlineField, FIELD_LABELS } from "../lib/data";
     and never averaged away.
   </p>
 
+  <p><a href="/contribute/machine/">+ Add a machine</a></p>
+
   {machines.length === 0 ? (
-    <p class="hole">No records yet — be the first to measure one.</p>
+    <p class="hole">No records yet — be the first to add one.</p>
   ) : (
     <>
       <h2>{machines.length} machine{machines.length === 1 ? "" : "s"}</h2>

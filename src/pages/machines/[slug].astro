@@ -13,6 +13,7 @@ const { machine } = Astro.props as { machine: Machine };
 const title = `${machine.brand}${machine.model ? " " + machine.model : ""}`;
 const sightings = sightingsByMachine.get(machine.id) ?? [];
 const latest = sightings[0];
+const addSightingUrl = `/contribute/sighting/?machine=${machine.id}&name=${encodeURIComponent(title)}`;
 
 // Effective loading for a generation falls back to the nameplate's.
 const genLoading = (g: Generation) => (g.loading?.length ? g.loading : machine.loading);
@@ -93,8 +94,9 @@ function renderMeasurements(measurements: Record<string, any[]> | undefined, loa
 
     <section class="sightings">
       <h2>Spotted in the wild</h2>
+      <p><a href={addSightingUrl}>📍 Seen one? Add a sighting →</a></p>
       {sightings.length === 0 ? (
-        <p class="hole">No sightings yet — seen one? Add where.</p>
+        <p class="hole">No sightings yet.</p>
       ) : (
         <ul class="list">
           {sightings.map((s) => (

@@ -1,0 +1,22 @@
+# Iron Archive submission Worker. Deploy with wrangler; secrets are set out-of-band
+# (never committed): GITHUB_TOKEN (fine-grained PAT), TURNSTILE_SECRET.
+name = "iron-archive-submit"
+main = "src/index.ts"
+compatibility_date = "2025-06-01"
+
+[vars]
+GITHUB_REPO = "anthonygwalters/iron-archive"
+ASSETS_BASE = "https://assets.theironarchive.org"
+ALLOWED_ORIGIN = "https://theironarchive.org"
+NOMINATIM_UA = "IronArchive/1.0 (+https://theironarchive.org)"
+
+# Public bucket that serves photos/documents. Create it, then set its public URL
+# as ASSETS_BASE above (and as IRON_ASSETS_BASE for the site build).
+[[r2_buckets]]
+binding = "ASSETS"
+bucket_name = "iron-archive-assets"
+
+# Per-IP rate limiting. Create the namespace and paste its id here.
+[[kv_namespaces]]
+binding = "RATE_LIMIT"
+id = "REPLACE_WITH_KV_NAMESPACE_ID"
