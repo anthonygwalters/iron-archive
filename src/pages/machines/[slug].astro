@@ -21,6 +21,8 @@ const addDocUrl = `/contribute/document/?${q}`;
 const addLinkUrl = `/contribute/link/?${q}`;
 const related = relatedMachines(machine);
 const unsortedDocs: Doc[] = machine.unsorted?.documents ?? [];
+const photoUrl = assetUrl(machine.lead_photo);
+const photoAlt = machine.lead_photo?.caption ?? title;
 
 // One marker per geocoded gym this machine has been sighted at.
 const mapById = new Map<string, { place_id: string; name: string; lat: number; lon: number; date: string; count: number }>();
@@ -61,9 +63,24 @@ function renderMeasurements(measurements: Record<string, any[]> | undefined, loa
     )}
     </div>
 
-    {assetUrl(machine.lead_photo) && (
+    {photoUrl && (
       <aside class="media">
-        <img class="lead" src={assetUrl(machine.lead_photo)} alt={machine.lead_photo?.caption ?? title} loading="lazy" onerror="this.style.display='none'" />
+        <button class="photo-btn" type="button" aria-label="Expand photo">
+          <img class="lead" src={photoUrl} alt={photoAlt} loading="lazy" onerror="this.style.display='none'" />
+        </button>
+        <dialog class="lightbox" id="lightbox">
+          <img src={photoUrl} alt={photoAlt} />
+        </dialog>
+        <script is:inline>
+          (function () {
+            var btn = document.querySelector(".photo-btn");
+            var dlg = document.getElementById("lightbox");
+            if (btn && dlg && dlg.showModal) {
+              btn.addEventListener("click", function () { dlg.showModal(); });
+              dlg.addEventListener("click", function () { dlg.close(); });
+            }
+          })();
+        </script>
       </aside>
     )}
 
@@ -222,6 +239,10 @@ function renderMeasurements(measurements: Record<string, any[]> | undefined, loa
   .machine { display: grid; grid-template-columns: 1fr; column-gap: 1.75rem; }
   .media { margin: 0.75rem 0; }
   .lead { width: 100%; border-radius: 10px; border: 1px solid var(--line); display: block; }
+  .photo-btn { display: block; width: 100%; padding: 0; border: 0; background: none; cursor: zoom-in; }
+  .lightbox { border: 0; padding: 0; background: transparent; max-width: 94vw; max-height: 94vh; }
+  .lightbox::backdrop { background: rgba(0, 0, 0, 0.82); }
+  .lightbox img { display: block; max-width: 94vw; max-height: 94vh; width: auto; height: auto; border-radius: 8px; cursor: zoom-out; }
   /* Desktop: header full-width on top, body left, photo in a sticky right column. */
   @media (min-width: 760px) {
     .machine { grid-template-columns: minmax(0, 1fr) 300px; align-items: start; }
