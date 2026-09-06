@@ -9,10 +9,13 @@ import {
   verifyTurnstile,
   rateLimit,
   resolvePlace,
+  searchPlaces,
+  type Place,
 } from "./lib";
 import { getMainSha, createBranch, existsOnMain, getFile, putFile, openPR } from "./github";
 
 const MAC = /^mac_[0-9A-HJKMNP-TV-Z]{26}$/;
+const PLACE = /^(osm_(node|way|relation)_[0-9]+|google_[A-Za-z0-9_-]+|local_[0-9A-HJKMNP-TV-Z]{26})$/;
 const DOC_TYPES = [
   "manual", "catalog/brochure", "advertisement", "vendor-page", "patent",
   "spec-sheet", "article", "forum", "video", "other",
@@ -23,7 +26,7 @@ export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const cors = {
       "Access-Control-Allow-Origin": env.ALLOWED_ORIGIN || "*",
-      "Access-Control-Allow-Methods": "POST, OPTIONS",
+      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
       "Access-Control-Allow-Headers": "Content-Type",
     };
     if (request.method === "OPTIONS") return new Response(null, { headers: cors });
@@ -31,6 +34,11 @@ export default {
     const url = new URL(request.url);
     if (request.method === "GET" && url.pathname === "/")
       return json({ ok: true, service: "iron-archive-submit" }, 200, cors);
+    if (request.method === "GET" && url.pathname === "/places") {
+      // Read-only geocoding suggestions for the form typeahead (no Turnstile).
+      const results = await searchPlaces(url.searchParams.get("q") ?? "", env);
+      return json(results, 200, cors);
+    }
     if (request.method !== "POST") return json({ error: "method not allowed" }, 405, cors);
 
     const ip = request.headers.get("CF-Connecting-IP") ?? "";
@@ -143,7 +151,25 @@ async function handleSighting(form: FormData, env: Env, cors: Record<string, str
     return json({ error: "valid machine_id is required" }, 400, cors);
   const dateSeen = str(form, "date_seen") || today();
 
-  const place = await resolvePlace(str(form, "gym"), env);
+  // Prefer a place the contributor picked from the autocomplete; otherwise
+  // fall back to resolving their free-text query server-side.
+  const pickedId = str(form, "place_id");
+  const pickedName = str(form, "place_name");
+  let place: Place;
+  if (PLACE.test(pickedId) && pickedName) {
+    const lat = parseFloat(str(form, "lat"));
+    const lon = parseFloat(str(form, "lon"));
+    place = {
+      place_id: pickedId,
+      name: pickedName,
+      address: str(form, "address") || undefined,
+      lat: Number.isNaN(lat) ? undefined : lat,
+      lon: Number.isNaN(lon) ? undefined : lon,
+      source: pickedId.startsWith("osm_") ? "osm" : "local",
+    };
+  } else {
+    place = await resolvePlace(str(form, "gym"), env);
+  }
   const photoKey = await uploadPhoto(form, env);
 
   const sighting: Record<string, unknown> = {

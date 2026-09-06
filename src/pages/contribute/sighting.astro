@@ -15,8 +15,17 @@ import { TURNSTILE_SITEKEY } from "../../lib/config";
     <input type="hidden" name="machine_id" id="machine_id" />
 
     <label>Gym <span class="req">*</span>
-      <input name="gym" required autocomplete="off" placeholder="name and city, e.g. Gold's Gym, Venice CA" />
+      <div class="typeahead">
+        <input name="gym" id="gym" required autocomplete="off" placeholder="start typing a gym name…" />
+        <ul id="suggest" class="suggest" hidden></ul>
+      </div>
     </label>
+    <p class="muted pick-hint" id="pick-hint" hidden>✓ Using the place you picked.</p>
+    <input type="hidden" name="place_id" id="place_id" />
+    <input type="hidden" name="place_name" id="place_name" />
+    <input type="hidden" name="lat" id="lat" />
+    <input type="hidden" name="lon" id="lon" />
+    <input type="hidden" name="address" id="address" />
     <label>Date seen
       <input type="date" name="date_seen" />
     </label>
@@ -47,6 +56,61 @@ import { TURNSTILE_SITEKEY } from "../../lib/config";
     const name = params.get("name") || "this machine";
     (document.getElementById("machine_id") as HTMLInputElement).value = machineId;
     document.getElementById("ctx")!.textContent = `Report where and when you saw ${name}.`;
+
+    // --- gym autocomplete (Photon via the Worker /places proxy) ---
+    const gymInput = document.getElementById("gym") as HTMLInputElement;
+    const suggest = document.getElementById("suggest") as HTMLElement;
+    const pickHint = document.getElementById("pick-hint") as HTMLElement;
+    const setH = (id: string, v: string) => {
+      (document.getElementById(id) as HTMLInputElement).value = v;
+    };
+    function clearPick() {
+      setH("place_id", ""); setH("place_name", ""); setH("lat", ""); setH("lon", ""); setH("address", "");
+      pickHint.hidden = true;
+    }
+    let debounce: number | undefined;
+    gymInput.addEventListener("input", () => {
+      clearPick(); // typing invalidates any prior pick
+      const q = gymInput.value.trim();
+      window.clearTimeout(debounce);
+      if (q.length < 3) { suggest.hidden = true; suggest.innerHTML = ""; return; }
+      debounce = window.setTimeout(async () => {
+        try {
+          const res = await fetch(`${SUBMIT_URL}/places?q=${encodeURIComponent(q)}`);
+          const items = await res.json();
+          suggest.innerHTML = "";
+          if (!Array.isArray(items) || items.length === 0) { suggest.hidden = true; return; }
+          for (const it of items) {
+            const li = document.createElement("li");
+            const b = document.createElement("strong");
+            b.textContent = it.name;
+            li.appendChild(b);
+            if (it.address) {
+              const s = document.createElement("span");
+              s.className = "a";
+              s.textContent = " " + it.address;
+              li.appendChild(s);
+            }
+            li.addEventListener("mousedown", (e) => {
+              e.preventDefault(); // fire before the input's blur
+              gymInput.value = it.name;
+              setH("place_id", it.place_id);
+              setH("place_name", it.name);
+              setH("lat", it.lat != null ? String(it.lat) : "");
+              setH("lon", it.lon != null ? String(it.lon) : "");
+              setH("address", it.address || "");
+              pickHint.hidden = false;
+              suggest.hidden = true;
+            });
+            suggest.appendChild(li);
+          }
+          suggest.hidden = false;
+        } catch {
+          suggest.hidden = true;
+        }
+      }, 300);
+    });
+    gymInput.addEventListener("blur", () => window.setTimeout(() => { suggest.hidden = true; }, 150));
 
     const form = document.getElementById("f") as HTMLFormElement;
     const result = document.getElementById("result") as HTMLElement;
@@ -82,6 +146,17 @@ import { TURNSTILE_SITEKEY } from "../../lib/config";
     background: var(--card); color: var(--ink);
   }
   .req { color: var(--accent); }
+  .typeahead { position: relative; }
+  .suggest {
+    position: absolute; z-index: 20; left: 0; right: 0; margin: 0.2rem 0 0; padding: 0;
+    list-style: none; background: var(--card); border: 1px solid var(--line);
+    border-radius: 8px; max-height: 260px; overflow: auto; box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+  }
+  .suggest li { padding: 0.45rem 0.6rem; cursor: pointer; border-bottom: 1px solid var(--line); font-weight: 400; font-size: 0.9rem; }
+  .suggest li:last-child { border-bottom: 0; }
+  .suggest li:hover { background: rgba(138,51,36,0.10); }
+  .suggest .a { color: var(--muted); font-size: 0.8rem; }
+  .pick-hint { margin-top: -0.4rem; color: #2e7d32; font-size: 0.85rem; }
   button { font: inherit; font-weight: 700; padding: 0.6rem 1rem; border: 0; border-radius: 8px; background: var(--accent); color: #fff; cursor: pointer; width: fit-content; }
   button:disabled { opacity: 0.6; cursor: default; }
   .result { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 0.6rem 0.8rem; }

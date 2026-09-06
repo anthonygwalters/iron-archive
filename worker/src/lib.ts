@@ -126,3 +126,43 @@ export async function resolvePlace(q: string, env: Env): Promise<Place> {
   // No match (or empty) -> provisional local id, flagged for later reconciliation.
   return { place_id: id("local"), name: q || "Unknown gym", source: "local" };
 }
+
+// Photon (OSM) is built for as-you-type search, unlike Nominatim. Returns a few
+// candidates for the contributor to pick from, each mapped to our osm_ place id.
+const OSM_TYPE: Record<string, string> = { N: "node", W: "way", R: "relation" };
+export async function searchPlaces(q: string, env: Env): Promise<Place[]> {
+  if (!q || q.trim().length < 3) return [];
+  const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&limit=6&lang=en`;
+  const r = await fetch(url, {
+    headers: { "User-Agent": env.NOMINATIM_UA, Accept: "application/json" },
+  });
+  if (!r.ok) return [];
+  const data = (await r.json()) as {
+    features?: Array<{
+      properties?: Record<string, any>;
+      geometry?: { coordinates?: [number, number] };
+    }>;
+  };
+  const out: Place[] = [];
+  const seen = new Set<string>();
+  for (const f of data.features ?? []) {
+    const p = f.properties ?? {};
+    const t = OSM_TYPE[p.osm_type];
+    if (!t || p.osm_id == null) continue;
+    const place_id = `osm_${t}_${p.osm_id}`;
+    if (seen.has(place_id)) continue;
+    seen.add(place_id);
+    const coords = f.geometry?.coordinates ?? [];
+    const street = p.housenumber && p.street ? `${p.housenumber} ${p.street}` : p.street;
+    const address = [p.name, street, p.city, p.state, p.country].filter(Boolean).join(", ");
+    out.push({
+      place_id,
+      name: p.name || street || p.city || q,
+      address: address || undefined,
+      lat: typeof coords[1] === "number" ? coords[1] : undefined,
+      lon: typeof coords[0] === "number" ? coords[0] : undefined,
+      source: "osm",
+    });
+  }
+  return out;
+}
