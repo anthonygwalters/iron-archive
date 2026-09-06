@@ -75,6 +75,7 @@ const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : As
         <a href="/search/">Search</a>
         <a href="/contribute/machine/">Add</a>
         <a href="/about/">About</a>
+        <span id="auth" class="auth"></span>
       </nav>
     </header>
     <main>
@@ -84,5 +85,50 @@ const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : As
       Iron Archive — a public reference for strength-training machine specifications,
       especially discontinued models. Field-measured, openly sourced, never averaged away.
     </footer>
+    <script>
+      import { SUBMIT_URL } from "../lib/config";
+      const KEY = "ia_session";
+      // Capture a session handed back in the OAuth callback fragment (#session=...)
+      const m = location.hash.match(/session=([^&]+)/);
+      if (m) {
+        try { localStorage.setItem(KEY, decodeURIComponent(m[1])); } catch {}
+        history.replaceState(null, "", location.pathname + location.search);
+      }
+      function currentLogin() {
+        let t;
+        try { t = localStorage.getItem(KEY); } catch { return null; }
+        if (!t) return null;
+        try {
+          const b = t.split(".")[0].replace(/-/g, "+").replace(/_/g, "/");
+          const p = JSON.parse(atob(b + "=".repeat((4 - (b.length % 4)) % 4)));
+          if (p.exp && p.exp * 1000 > Date.now() && p.login) return p.login;
+        } catch {}
+        try { localStorage.removeItem(KEY); } catch {}
+        return null;
+      }
+      const el = document.getElementById("auth");
+      if (el) {
+        const login = currentLogin();
+        if (login) {
+          const a = document.createElement("a");
+          a.href = "/contributors/" + encodeURIComponent(login) + "/";
+          a.textContent = "@" + login;
+          const out = document.createElement("a");
+          out.href = "#";
+          out.textContent = "sign out";
+          out.addEventListener("click", (e) => {
+            e.preventDefault();
+            try { localStorage.removeItem(KEY); } catch {}
+            location.reload();
+          });
+          el.replaceChildren(a, document.createTextNode(" · "), out);
+        } else {
+          const a = document.createElement("a");
+          a.href = SUBMIT_URL + "/auth/login";
+          a.textContent = "Sign in with GitHub";
+          el.replaceChildren(a);
+        }
+      }
+    </script>
   </body>
 </html>

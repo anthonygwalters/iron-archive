@@ -33,6 +33,7 @@ export type Doc = {
   title?: string;
   publisher?: string;
   year?: number;
+  contributor?: string;
 };
 export type Generation = {
   id: string;
@@ -255,4 +256,40 @@ export const brands: Brand[] = (() => {
 })();
 
 export const brandBySlug = new Map(brands.map((b) => [b.slug, b]));
+
+// --- Contributors (verified gh: submitters) -----------------------------
+
+export type ContributorData = {
+  machines: Machine[];
+  sightings: Sighting[];
+  documents: Array<{ machine: Machine; doc: Doc }>;
+};
+
+export const contributors = new Map<string, ContributorData>();
+function ensureContrib(login: string): ContributorData {
+  let c = contributors.get(login);
+  if (!c) {
+    c = { machines: [], sightings: [], documents: [] };
+    contributors.set(login, c);
+  }
+  return c;
+}
+const ghLogin = (v?: string) => (v && v.startsWith("gh:") ? v.slice(3) : null);
+
+for (const m of machines) {
+  const mc = ghLogin(m.lead_photo?.contributor);
+  if (mc) ensureContrib(mc).machines.push(m);
+  const docs = [
+    ...(m.unsorted?.documents ?? []),
+    ...(m.generations ?? []).flatMap((g) => g.documents ?? []),
+  ];
+  for (const d of docs) {
+    const dc = ghLogin(d.contributor);
+    if (dc) ensureContrib(dc).documents.push({ machine: m, doc: d });
+  }
+}
+for (const s of sightings) {
+  const sc = ghLogin(s.reporter);
+  if (sc) ensureContrib(sc).sightings.push(s);
+}
 

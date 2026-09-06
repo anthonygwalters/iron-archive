@@ -10,6 +10,8 @@ import {
   rateLimit,
   resolvePlace,
   searchPlaces,
+  sign,
+  verify,
   type Place,
 } from "./lib";
 import { getMainSha, createBranch, existsOnMain, getFile, putFile, openPR } from "./github";
@@ -39,6 +41,8 @@ export default {
       const results = await searchPlaces(url.searchParams.get("q") ?? "", env);
       return json(results, 200, cors);
     }
+    if (request.method === "GET" && url.pathname === "/auth/login") return authLogin(request, env);
+    if (request.method === "GET" && url.pathname === "/auth/callback") return authCallback(request, env);
     if (request.method !== "POST") return json({ error: "method not allowed" }, 405, cors);
 
     const ip = request.headers.get("CF-Connecting-IP") ?? "";
@@ -73,6 +77,60 @@ function contributor(form: FormData): string {
   return h ? (h.startsWith("gh:") ? h : `web:${h.replace(/^@/, "")}`) : "web:anonymous";
 }
 
+// Verified identity if a valid signed session is present, else the typed handle.
+async function contrib(form: FormData, env: Env): Promise<string> {
+  const session = str(form, "session");
+  if (session && env.SESSION_SECRET) {
+    const obj = await verify(session, env.SESSION_SECRET);
+    if (obj?.login) return `gh:${obj.login}`;
+  }
+  return contributor(form);
+}
+
+async function authLogin(request: Request, env: Env): Promise<Response> {
+  const origin = new URL(request.url).origin;
+  const state = await sign({ k: "s" }, env.SESSION_SECRET ?? "", 600);
+  const gh = new URL("https://github.com/login/oauth/authorize");
+  gh.searchParams.set("client_id", env.GITHUB_CLIENT_ID);
+  gh.searchParams.set("redirect_uri", `${origin}/auth/callback`);
+  gh.searchParams.set("scope", "read:user");
+  gh.searchParams.set("state", state);
+  return Response.redirect(gh.toString(), 302);
+}
+
+async function authCallback(request: Request, env: Env): Promise<Response> {
+  const u = new URL(request.url);
+  const site = env.ALLOWED_ORIGIN || u.origin;
+  const code = u.searchParams.get("code");
+  const state = u.searchParams.get("state");
+  if (!code || !state || !(await verify(state, env.SESSION_SECRET ?? "")))
+    return Response.redirect(`${site}/?auth=error`, 302);
+  const tokRes = await fetch("https://github.com/login/oauth/access_token", {
+    method: "POST",
+    headers: { Accept: "application/json", "Content-Type": "application/json" },
+    body: JSON.stringify({
+      client_id: env.GITHUB_CLIENT_ID,
+      client_secret: env.GITHUB_CLIENT_SECRET,
+      code,
+      redirect_uri: `${u.origin}/auth/callback`,
+    }),
+  });
+  const tok = (await tokRes.json()) as { access_token?: string };
+  if (!tok.access_token) return Response.redirect(`${site}/?auth=error`, 302);
+  const userRes = await fetch("https://api.github.com/user", {
+    headers: {
+      Authorization: `Bearer ${tok.access_token}`,
+      "User-Agent": "iron-archive-submit",
+      Accept: "application/vnd.github+json",
+    },
+  });
+  const user = (await userRes.json()) as { login?: string };
+  if (!user.login) return Response.redirect(`${site}/?auth=error`, 302);
+  // We only ever needed the verified login; the GitHub token is discarded here.
+  const session = await sign({ login: user.login }, env.SESSION_SECRET ?? "", 2592000);
+  return Response.redirect(`${site}/#session=${encodeURIComponent(session)}`, 302);
+}
+
 async function uploadAsset(
   entry: File | string | null,
   env: Env,
@@ -93,6 +151,7 @@ async function uploadAsset(
 const uploadPhoto = (form: FormData, env: Env) => uploadAsset(form.get("photo"), env, "ph", "jpg");
 
 async function handleMachine(form: FormData, env: Env, cors: Record<string, string>) {
+  const who = await contrib(form, env);
   const brand = str(form, "brand");
   if (!brand) return json({ error: "brand is required" }, 400, cors);
   const model = str(form, "model");
@@ -125,7 +184,7 @@ async function handleMachine(form: FormData, env: Env, cors: Record<string, stri
     .map((s) => s.trim())
     .filter(Boolean);
   if (modelNumbers.length) record.model_number = modelNumbers;
-  record.lead_photo = { key: photoKey, contributor: contributor(form), date: today() };
+  record.lead_photo = { key: photoKey, contributor: who, date: today() };
 
   const branch = `submit/machine-${(record.id as string).slice(4).toLowerCase()}`;
   await createBranch(env, branch, await getMainSha(env));
@@ -140,12 +199,13 @@ async function handleMachine(form: FormData, env: Env, cors: Record<string, stri
     env,
     branch,
     `Add machine: ${brand}${model ? " " + model : ""}`,
-    `New machine stub submitted via the intake form.\n\nContributor: ${contributor(form)}`
+    `New machine stub submitted via the intake form.\n\nContributor: ${who}`
   );
   return json({ ok: true, pr: prUrl }, 200, cors);
 }
 
 async function handleSighting(form: FormData, env: Env, cors: Record<string, string>) {
+  const who = await contrib(form, env);
   const machineId = str(form, "machine_id");
   if (!/^mac_[0-9A-HJKMNP-TV-Z]{26}$/.test(machineId))
     return json({ error: "valid machine_id is required" }, 400, cors);
@@ -179,13 +239,13 @@ async function handleSighting(form: FormData, env: Env, cors: Record<string, str
     place_id: place.place_id,
     place_name: place.name,
     date_seen: dateSeen,
-    reporter: contributor(form),
+    reporter: who,
   };
   const generationId = str(form, "generation_id");
   if (/^gen_[0-9A-HJKMNP-TV-Z]{26}$/.test(generationId)) sighting.generation_id = generationId;
   const serial = str(form, "serial");
   if (serial) sighting.serial = serial;
-  if (photoKey) sighting.photo = { key: photoKey, contributor: contributor(form), date: dateSeen };
+  if (photoKey) sighting.photo = { key: photoKey, contributor: who, date: dateSeen };
   const note = str(form, "note");
   if (note) sighting.note = note;
 
@@ -219,7 +279,7 @@ async function handleSighting(form: FormData, env: Env, cors: Record<string, str
     env,
     branch,
     `Sighting: machine at ${place.name}`,
-    `Sighting submitted via the intake form.\n\nReporter: ${contributor(form)} · seen ${dateSeen}`
+    `Sighting submitted via the intake form.\n\nReporter: ${who} · seen ${dateSeen}`
   );
   return json({ ok: true, pr: prUrl }, 200, cors);
 }
@@ -233,6 +293,7 @@ async function loadMachine(slug: string, branch: string, env: Env) {
 }
 
 async function handleDocument(form: FormData, env: Env, cors: Record<string, string>) {
+  const who = await contrib(form, env);
   const machineId = str(form, "machine_id");
   const slug = str(form, "slug");
   if (!MAC.test(machineId) || !slug) return json({ error: "machine_id and slug required" }, 400, cors);
@@ -263,7 +324,7 @@ async function handleDocument(form: FormData, env: Env, cors: Record<string, str
   if (publisher) doc.publisher = publisher;
   const year = parseInt(str(form, "year"), 10);
   if (!Number.isNaN(year)) doc.year = year;
-  doc.contributor = contributor(form);
+  doc.contributor = who;
   doc.date_added = today();
 
   m.rec.unsorted = m.rec.unsorted ?? {};
@@ -276,12 +337,13 @@ async function handleDocument(form: FormData, env: Env, cors: Record<string, str
     env,
     branch,
     `Add documentation: ${title || docType} — ${name}`,
-    `Document submitted via the intake form (lands in the unsorted bucket for review).\n\nContributor: ${contributor(form)}`
+    `Document submitted via the intake form (lands in the unsorted bucket for review).\n\nContributor: ${who}`
   );
   return json({ ok: true, pr: prUrl }, 200, cors);
 }
 
 async function handleLink(form: FormData, env: Env, cors: Record<string, string>) {
+  const who = await contrib(form, env);
   const machineId = str(form, "machine_id");
   const slug = str(form, "slug");
   const kind = str(form, "kind");
@@ -306,7 +368,7 @@ async function handleLink(form: FormData, env: Env, cors: Record<string, string>
     env,
     branch,
     `Link: ${name} — ${kind}`,
-    `Relationship submitted via the intake form.\n\nContributor: ${contributor(form)}`
+    `Relationship submitted via the intake form.\n\nContributor: ${who}`
   );
   return json({ ok: true, pr: prUrl }, 200, cors);
 }

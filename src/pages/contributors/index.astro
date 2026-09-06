@@ -1,0 +1,35 @@
+---
+import Base from "../../layouts/Base.astro";
+import { contributors } from "../../lib/data";
+
+const rows = [...contributors.entries()]
+  .map(([login, d]) => ({ login, count: d.machines.length + d.sightings.length + d.documents.length }))
+  .sort((a, b) => b.count - a.count || a.login.localeCompare(b.login));
+---
+
+<Base title="Contributors" description="People who have contributed to the Iron Archive.">
+  <h1>Contributors</h1>
+  <p class="muted">
+    Verified GitHub contributors. Sign in with GitHub before submitting to get credit
+    on your own page; anonymous submissions are welcome too and simply aren't listed here.
+  </p>
+
+  {rows.length === 0 ? (
+    <p class="hole">No verified contributions yet — sign in with GitHub and submit one.</p>
+  ) : (
+    <ul class="list">
+      {rows.map((r) => (
+        <li>
+          <a href={`/contributors/${r.login}/`}>@{r.login}</a>
+          <span class="muted"> · {r.count} contribution{r.count === 1 ? "" : "s"}</span>
+        </li>
+      ))}
+    </ul>
+  )}
+</Base>
+
+<style>
+  ul.list { list-style: none; padding: 0; }
+  ul.list li { padding: 0.55rem 0; border-bottom: 1px solid var(--line); }
+  ul.list a { font-weight: 700; margin-right: 0.4rem; }
+</style>

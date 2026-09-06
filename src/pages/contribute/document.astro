@@ -67,7 +67,9 @@ import { TURNSTILE_SITEKEY, DOC_TYPES } from "../../lib/config";
       result.hidden = false;
       result.textContent = "Submitting…";
       try {
-        const res = await fetch(`${SUBMIT_URL}/documents`, { method: "POST", body: new FormData(form) });
+        const fd = new FormData(form);
+        try { const s = localStorage.getItem("ia_session"); if (s) fd.append("session", s); } catch {}
+        const res = await fetch(`${SUBMIT_URL}/documents`, { method: "POST", body: fd });
         const data = await res.json();
         if (res.ok && data.pr) {
           result.innerHTML = `Thanks! Up for review: <a href="${data.pr}" target="_blank" rel="noopener">view the pull request</a>.`;

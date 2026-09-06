@@ -9,6 +9,7 @@ GITHUB_REPO = "anthonygwalters/iron-archive"
 ASSETS_BASE = "https://pub-db6d4b3c62494f3e8d112f79d7814bf5.r2.dev"
 ALLOWED_ORIGIN = "https://theironarchive.org"
 NOMINATIM_UA = "IronArchive/1.0 (+https://theironarchive.org)"
+GITHUB_CLIENT_ID = "Ov23liSyFp96ZCRNI9tx"
 
 # Public bucket that serves photos/documents. Create it, then set its public URL
 # as ASSETS_BASE above (and as IRON_ASSETS_BASE for the site build).

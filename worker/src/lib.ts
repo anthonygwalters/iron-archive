@@ -9,6 +9,9 @@ export interface Env {
   ASSETS_BASE: string;
   ALLOWED_ORIGIN: string;
   NOMINATIM_UA: string;
+  GITHUB_CLIENT_ID: string;
+  GITHUB_CLIENT_SECRET?: string;
+  SESSION_SECRET?: string;
 }
 
 const CROCKFORD = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
@@ -165,4 +168,56 @@ export async function searchPlaces(q: string, env: Env): Promise<Place[]> {
     });
   }
   return out;
+}
+
+// --- Signed sessions / state (stateless HMAC, no DB) ---------------------
+
+function b64urlBytes(bytes: Uint8Array): string {
+  let bin = "";
+  for (const b of bytes) bin += String.fromCharCode(b);
+  return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+function b64urlStr(s: string): string {
+  return b64urlBytes(new TextEncoder().encode(s));
+}
+function strFromB64url(s: string): string {
+  const b = s.replace(/-/g, "+").replace(/_/g, "/");
+  const bin = atob(b + "=".repeat((4 - (b.length % 4)) % 4));
+  return new TextDecoder().decode(Uint8Array.from(bin, (c) => c.charCodeAt(0)));
+}
+async function hmac(secret: string, data: string): Promise<Uint8Array> {
+  const key = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"]
+  );
+  return new Uint8Array(await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(data)));
+}
+
+/** Sign a small JSON payload with an expiry; returns "<b64url payload>.<b64url sig>". */
+export async function sign(
+  obj: Record<string, unknown>,
+  secret: string,
+  ttlSec: number
+): Promise<string> {
+  const p = b64urlStr(JSON.stringify({ ...obj, exp: Math.floor(Date.now() / 1000) + ttlSec }));
+  return `${p}.${b64urlBytes(await hmac(secret, p))}`;
+}
+
+/** Verify a token from sign(); returns the payload object or null. */
+export async function verify(token: string, secret: string): Promise<Record<string, any> | null> {
+  const i = token.indexOf(".");
+  if (i < 0) return null;
+  const p = token.slice(0, i);
+  const sig = token.slice(i + 1);
+  if (sig !== b64urlBytes(await hmac(secret, p))) return null;
+  try {
+    const obj = JSON.parse(strFromB64url(p));
+    if (typeof obj.exp !== "number" || obj.exp < Math.floor(Date.now() / 1000)) return null;
+    return obj;
+  } catch {
+    return null;
+  }
 }

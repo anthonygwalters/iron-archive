@@ -1,0 +1,76 @@
+---
+import Base from "../../layouts/Base.astro";
+import { contributors, machineById, machineTitle, type ContributorData } from "../../lib/data";
+
+export function getStaticPaths() {
+  return [...contributors.entries()].map(([login, data]) => ({
+    params: { login },
+    props: { login, data },
+  }));
+}
+const { login, data } = Astro.props as { login: string; data: ContributorData };
+const total = data.machines.length + data.sightings.length + data.documents.length;
+---
+
+<Base title={`@${login}`} description={`Contributions by @${login} to the Iron Archive.`}>
+  <p class="crumb"><a href="/contributors/">Contributors</a> ›</p>
+  <h1>@{login}</h1>
+  <p class="muted">
+    {total} contribution{total === 1 ? "" : "s"} ·
+    <a href={`https://github.com/${login}`} rel="noopener">GitHub ↗</a>
+  </p>
+
+  {data.machines.length > 0 && (
+    <section>
+      <h2>Machines added ({data.machines.length})</h2>
+      <ul class="list">
+        {data.machines.map((m) => (
+          <li><a href={`/machines/${m.slug}/`}>{machineTitle(m)}</a>
+            {m.status === "stub" && <span class="pill stub">stub</span>}
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
+
+  {data.sightings.length > 0 && (
+    <section>
+      <h2>Sightings ({data.sightings.length})</h2>
+      <ul class="list">
+        {data.sightings.map((s) => {
+          const m = machineById.get(s.machine_id);
+          return (
+            <li>
+              {m ? <a href={`/machines/${m.slug}/`}>{machineTitle(m)}</a> : <span>{s.machine_id}</span>}
+              <span class="muted"> at <a href={`/gyms/${s.place_id}/`}>{s.place_name}</a> · {s.date_seen}</span>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
+  )}
+
+  {data.documents.length > 0 && (
+    <section>
+      <h2>Documentation ({data.documents.length})</h2>
+      <ul class="list">
+        {data.documents.map(({ machine, doc }) => (
+          <li>
+            <span class="pill">{doc.doc_type}</span>
+            {doc.url ? <a href={doc.url} rel="nofollow noopener">{doc.title ?? doc.url}</a> : <span>{doc.title ?? doc.id}</span>}
+            <span class="muted"> — <a href={`/machines/${machine.slug}/`}>{machineTitle(machine)}</a></span>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
+
+  {total === 0 && <p class="hole">No contributions yet.</p>}
+</Base>
+
+<style>
+  .crumb { font-size: 0.85rem; margin-bottom: 0; }
+  ul.list { list-style: none; padding: 0; }
+  ul.list li { padding: 0.5rem 0; border-bottom: 1px solid var(--line); }
+  ul.list a { font-weight: 600; margin-right: 0.35rem; }
+</style>
