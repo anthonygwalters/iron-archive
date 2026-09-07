@@ -1,0 +1,16 @@
+# Submitted via the Iron Archive intake form.
+schema_version: 1
+id: mac_01M1WMXKSW7NM26D8VMCRCKCF2
+slug: cybex-multi-neck
+status: stub
+brand: Cybex
+model: Multi-Neck
+region:
+  - neck
+loading:
+  - selectorized
+mechanism: cable
+lead_photo:
+  key: obj/ph_01M1WMXKAGJ471XA8CB6V4YYCF.jpeg
+  contributor: gh:anthonygwalters
+  date: 2026-09-07
