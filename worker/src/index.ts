@@ -23,6 +23,9 @@ const DOC_TYPES = [
   "spec-sheet", "article", "forum", "video", "other",
 ];
 const LINK_KINDS = ["family", "remake_of", "rebrand_of", "same_as"];
+const MEASURED_FIELDS = ["starting_weight", "leverage", "counterbalance", "pulley_ratio", "assist_range"];
+const UNITS = ["lb", "kg", "ratio", "deg", "in", "cm", "mm"];
+const CONFIDENCE = ["measured", "manufacturer", "estimated", "disputed"];
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
@@ -58,6 +61,7 @@ export default {
       if (url.pathname === "/sightings") return await handleSighting(form, env, cors);
       if (url.pathname === "/documents") return await handleDocument(form, env, cors);
       if (url.pathname === "/links") return await handleLink(form, env, cors);
+      if (url.pathname === "/measurements") return await handleMeasurement(form, env, cors);
       return json({ error: "not found" }, 404, cors);
     } catch (e) {
       return json({ error: e instanceof Error ? e.message : String(e) }, 500, cors);
@@ -369,6 +373,52 @@ async function handleLink(form: FormData, env: Env, cors: Record<string, string>
     branch,
     `Link: ${name} — ${kind}`,
     `Relationship submitted via the intake form.\n\nContributor: ${who}`
+  );
+  return json({ ok: true, pr: prUrl }, 200, cors);
+}
+
+async function handleMeasurement(form: FormData, env: Env, cors: Record<string, string>) {
+  const who = await contrib(form, env);
+  const machineId = str(form, "machine_id");
+  const slug = str(form, "slug");
+  if (!MAC.test(machineId) || !slug) return json({ error: "machine_id and slug required" }, 400, cors);
+
+  const field = str(form, "field");
+  if (!MEASURED_FIELDS.includes(field)) return json({ error: "invalid measurement field" }, 400, cors);
+  const rom = str(form, "rom");
+  if (!rom) return json({ error: "a ROM position is required for a measurement" }, 400, cors);
+  const trials = ["trial1", "trial2", "trial3"]
+    .map((k) => parseFloat(str(form, k)))
+    .filter((n) => !Number.isNaN(n));
+  if (trials.length === 0) return json({ error: "at least one trial value is required" }, 400, cors);
+
+  const obs: Record<string, unknown> = { rom, trials };
+  const unit = str(form, "unit");
+  if (UNITS.includes(unit)) obs.unit = unit;
+  const source = str(form, "source");
+  if (source) obs.source = source;
+  obs.contributor = who;
+  obs.date = today();
+  const conf = str(form, "confidence");
+  obs.confidence = CONFIDENCE.includes(conf) ? conf : "measured";
+
+  const branch = `submit/meas-${id("x").slice(2).toLowerCase()}`;
+  await createBranch(env, branch, await getMainSha(env));
+  const m = await loadMachine(slug, branch, env);
+  if (!m) return json({ error: "machine not found" }, 404, cors);
+
+  m.rec.unsorted = m.rec.unsorted ?? {};
+  m.rec.unsorted.measurements = m.rec.unsorted.measurements ?? {};
+  m.rec.unsorted.measurements[field] = m.rec.unsorted.measurements[field] ?? [];
+  m.rec.unsorted.measurements[field].push(obs);
+
+  const name = `${m.rec.brand}${m.rec.model ? " " + m.rec.model : ""}`;
+  await putFile(env, m.path, yaml(m.rec), `Add ${field} reading to ${name}`, branch, m.sha);
+  const prUrl = await openPR(
+    env,
+    branch,
+    `Add measurement: ${field} — ${name}`,
+    `Measurement submitted via the intake form (lands in the unsorted bucket for review).\n\nContributor: ${who}`
   );
   return json({ ok: true, pr: prUrl }, 200, cors);
 }

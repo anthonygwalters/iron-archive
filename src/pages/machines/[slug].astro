@@ -19,6 +19,7 @@ const q = `machine=${machine.id}&slug=${machine.slug}&name=${encodeURIComponent(
 const addSightingUrl = `/contribute/sighting/?${q}`;
 const addDocUrl = `/contribute/document/?${q}`;
 const addLinkUrl = `/contribute/link/?${q}`;
+const addMeasurementUrl = `/contribute/measurement/?${q}&field=${headlineField(machine.loading) ?? ""}`;
 const related = relatedMachines(machine);
 const unsortedDocs: Doc[] = machine.unsorted?.documents ?? [];
 const photoUrl = assetUrl(machine.lead_photo);
@@ -91,6 +92,8 @@ function renderMeasurements(measurements: Record<string, any[]> | undefined, loa
         on {latest.date_seen}. <span class="muted">A dated report, not a live status.</span>
       </p>
     )}
+
+    <p class="add-measure"><a href={addMeasurementUrl}>📏 Measured a starting weight, leverage, or other reading? Add it →</a></p>
 
     {(machine.generations ?? []).map((g) => {
       const loading = genLoading(g);

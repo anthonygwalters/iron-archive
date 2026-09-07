@@ -22,6 +22,16 @@ export const DOC_TYPES = [
   "spec-sheet", "article", "forum", "video", "other",
 ];
 
+export const MEASURED_FIELDS = [
+  { value: "starting_weight", label: "Starting weight" },
+  { value: "leverage", label: "Leverage ratio" },
+  { value: "counterbalance", label: "Counterbalance" },
+  { value: "pulley_ratio", label: "Pulley ratio" },
+  { value: "assist_range", label: "Assist range" },
+];
+export const UNITS = ["lb", "kg", "ratio", "deg", "in", "cm", "mm"];
+export const CONFIDENCE = ["measured", "manufacturer", "estimated", "disputed"];
+
 export const LINK_KINDS = [
   { value: "remake_of", label: "This is a remake of…" },
   { value: "family", label: "Same family as…" },
