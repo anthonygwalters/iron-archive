@@ -1,0 +1,17 @@
+# Submitted via the Iron Archive intake form.
+schema_version: 1
+id: mac_01M1WKMQARXD5TVGJCG7BDAHGM
+slug: westside-barbell-ultra-supreme-reverse-hyper
+status: stub
+brand: Westside Barbell
+model: Ultra Supreme Reverse Hyper
+region:
+  - glutes
+  - lower-back
+loading:
+  - plate-loaded
+mechanism: pendulum
+lead_photo:
+  key: obj/ph_01M1WKMPJKKS6NVC9Z76H4PRY1.jpeg
+  contributor: gh:anthonygwalters
+  date: 2026-09-07
