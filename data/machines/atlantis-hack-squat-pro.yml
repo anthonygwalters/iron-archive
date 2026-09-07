@@ -26,3 +26,13 @@ unsorted:
       publisher: Atlantis
       contributor: gh:anthonygwalters
       date_added: 2026-09-06
+  measurements:
+    starting_weight:
+      - rom: n/a
+        trials:
+          - 135
+        unit: lb
+        source: Manufacturer website
+        contributor: gh:anthonygwalters
+        date: 2026-09-07
+        confidence: manufacturer
