@@ -1,0 +1,18 @@
+# Submitted via the Iron Archive intake form.
+schema_version: 1
+id: mac_01M2GG85ZXMYRZ3TR4XE56PDS5
+slug: nautilus-70-degree-shoulder
+status: stub
+brand: Nautilus
+model: 70-degree shoulder
+region:
+  - chest
+  - shoulders
+movement: Steep angle fly - hits upper chest as well. Weight is loaded on the upper arm.
+loading:
+  - selectorized
+mechanism: cam
+lead_photo:
+  key: obj/ph_01M2GG85H8P6DWBMVS5GKSVBDM.jpeg
+  contributor: gh:anthonygwalters
+  date: 2026-09-14
